@@ -1,0 +1,14 @@
+name: Download Claude
+on: [push]
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Claude MSIX
+        run: |
+          curl -L -o claude.msix "https://api.anthropic.com/api/desktop/win32/x64/msix/latest/redirect"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-installer
+          path: claude.msix
