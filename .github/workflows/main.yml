@@ -1,4 +1,4 @@
-name: Download Claude
+name: Download Claude 
 on: [push]
 jobs:
   download:
