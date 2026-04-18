@@ -6,7 +6,7 @@ jobs:
     steps:
       - name: Download Claude MSIX
         run: |
-          curl -L -o claude.msix "https://api.anthropic.com/api/desktop/win32/x64/msix/latest/redirect"
+        curl -L -o claude.msix "https://api.anthropic.com/api/desktop/win32/x64/msix/1.3109.0/download"  
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
