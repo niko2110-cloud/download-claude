@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>商品详情 - 星海水晶记</title>
+<style>
+:root{
+  --brand:#7c3aed;--brand2:#4c1d95;--brand3:#6d28d9;
+  --accent:#f59e0b;--red:#ef4444;--green:#10b981;
+  --bg:#f8f7ff;--card:#fff;--text:#1a1a2e;--sub:#6b7280;
+  --border:#e5e7eb;--radius:14px;--shadow:0 2px 12px rgba(124,58,237,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);max-width:480px;margin:0 auto;min-height:100vh;position:relative}
+a{text-decoration:none;color:inherit}
+button{border:none;cursor:pointer;font-family:inherit}
+.topbar{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;z-index:100;background:linear-gradient(135deg,var(--brand2),var(--brand));display:flex;align-items:center;gap:10px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top))}
+.btn-back{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0}
+.topbar-title{flex:1;color:#fff;font-size:17px;font-weight:700;letter-spacing:.5px}
+.topbar-actions{display:flex;gap:8px}
+.topbar-icon{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
+.img-wrap{margin-top:56px;position:relative;width:100%;background:#000;overflow:hidden}
+.img-track{display:flex;transition:transform .35s ease}
+.img-slide{min-width:100%;aspect-ratio:1/1;overflow:hidden;position:relative}
+.img-slide img{width:100%;height:100%;object-fit:cover;display:block}
+.img-placeholder{width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--brand2),var(--brand));font-size:80px}
+.img-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:10}
+.img-dot{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.5);transition:all .3s}
+.img-dot.active{width:18px;background:#fff}
+.price-banner{background:linear-gradient(135deg,var(--brand2) 0%,var(--brand) 100%);padding:14px 16px}
+.price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.price-main{color:#fff;font-size:28px;font-weight:800}
+.price-main span{font-size:16px;font-weight:400}
+.price-orig{color:rgba(255,255,255,.6);font-size:13px;text-decoration:line-through}
+.price-badge{background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:4px}
+.goods-name{color:#fff;font-size:17px;font-weight:700;line-height:1.4;margin-bottom:4px}
+.goods-sub{color:rgba(255,255,255,.75);font-size:13px;line-height:1.5}
+.price-tags{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.price-tag{background:rgba(255,255,255,.2);color:#fff;font-size:11px;padding:3px 10px;border-radius:20px}
+.card{background:var(--card);border-radius:var(--radius);margin:10px 12px;box-shadow:var(--shadow);overflow:hidden}
+.card-title{padding:14px 16px 0;font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px}
+.card-title::before{content:'';display:block;width:4px;height:16px;background:var(--brand);border-radius:2px}
+.spec-group{margin-bottom:14px;padding:12px 16px 0}
+.spec-label{font-size:12px;color:var(--sub);margin-bottom:8px}
+.spec-options{display:flex;gap:8px;flex-wrap:wrap}
+.spec-btn{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;background:var(--bg);border:1.5px solid var(--border);color:var(--text);transition:all .2s;cursor:pointer}
+.spec-btn.active{background:var(--brand);border-color:var(--brand);color:#fff}
+.qty-row{padding:12px 16px 14px;display:flex;align-items:center;justify-content:space-between}
+.qty-label{font-size:14px;color:var(--text)}
+.qty-ctrl{display:flex;align-items:center}
+.qty-btn{width:32px;height:32px;border-radius:8px;background:var(--bg);border:1.5px solid var(--border);color:var(--text);font-size:18px;display:flex;align-items:center;justify-content:center}
+.qty-num{width:44px;text-align:center;font-size:15px;font-weight:700;color:var(--brand)}
+.info-list{padding:4px 0}
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--border)}
+.info-row:last-child{border-bottom:none}
+.info-key{font-size:13px;color:var(--sub)}
+.info-val{font-size:13px;color:var(--text);font-weight:500;max-width:60%;text-align:right}
+.badge-green{background:#d1fae5;color:#059669;padding:2px 8px;border-radius:20px;font-size:12px}
+.detail-placeholder{padding:16px;text-align:center}
+.detail-placeholder .big-icon{font-size:60px;margin-bottom:10px}
+.detail-placeholder p{font-size:14px;color:var(--sub)}
+.detail-text{padding:0 16px 16px;font-size:14px;color:#374151;line-height:1.7}
+.shop-card{margin:0 12px 10px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;display:flex;align-items:center;gap:12px}
+.shop-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--brand2),var(--brand));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.shop-info{flex:1;min-width:0}
+.shop-name{font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px}
+.shop-desc{font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shop-enter{padding:7px 14px;background:var(--brand);color:#fff;border-radius:20px;font-size:13px;font-weight:600}
+.related-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 16px 16px}
+.related-card{background:var(--card);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.related-img{width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;font-size:36px;background:linear-gradient(135deg,#f3e8ff,#ddd6fe)}
+.related-info{padding:8px 10px}
+.related-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.related-price{font-size:15px;font-weight:700;color:var(--brand)}
+.bottom-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--card);border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));z-index:100;box-shadow:0 -2px 12px rgba(0,0,0,.06)}
+.bar-icon{display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 12px;cursor:pointer;color:var(--sub);font-size:11px;white-space:nowrap}
+.bar-icon span.ico{font-size:22px;line-height:1}
+.bar-btns{flex:1;display:flex;gap:8px}
+.btn-cart{flex:1;padding:12px 0;border-radius:12px;font-size:15px;font-weight:700;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;text-align:center;cursor:pointer}
+.btn-buy{flex:1;padding:12px 0;border-radius:12px;font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;text-align:center;cursor:pointer}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:480px;background:var(--card);border-radius:20px 20px 0 0;z-index:201;transition:transform .3s cubic-bezier(.32,1,.23,1);max-height:90vh;overflow-y:auto;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+.sheet.show{transform:translateX(-50%) translateY(0)}
+.sheet-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0}
+.sheet-head{padding:16px 16px 12px;display:flex;align-items:center;justify-content:space-between}
+.sheet-title{font-size:17px;font-weight:700;color:var(--text)}
+.sheet-close{width:32px;height:32px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--sub);cursor:pointer}
+.order-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.order-img{width:64px;height:64px;border-radius:10px;background:linear-gradient(135deg,#f3e8ff,#ddd6fe);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.order-info{flex:1;min-width:0}
+.order-name{font-size:14px;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.order-spec{font-size:12px;color:var(--sub);margin-bottom:4px}
+.order-price{font-size:16px;font-weight:700;color:var(--brand)}
+.form-group{padding:0 16px 12px}
+.form-label{font-size:13px;color:var(--sub);margin-bottom:6px}
+.form-input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);background:var(--bg);outline:none;font-family:inherit}
+.form-input:focus{border-color:var(--brand)}
+.form-textarea{min-height:80px;resize:none}
+.btn-submit{margin:4px 16px 16px;width:calc(100% - 32px);padding:14px;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:14px;font-size:16px;font-weight:700;display:block;cursor:pointer;border:none;font-family:inherit}
+.contact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 16px 16px}
+.contact-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;background:var(--bg);border-radius:12px;cursor:pointer}
+.contact-item:active{transform:scale(.96)}
+.contact-icon{font-size:28px}
+.contact-name{font-size:12px;color:var(--sub);font-weight:500}
+.cargo-section{padding:0 16px 14px}
+.cargo-section h4{font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.cargo-steps{list-style:none}
+.cargo-step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
+.cargo-step .step-num{width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.cargo-step p{font-size:13px;color:#374151;line-height:1.5}
+.cargo-platforms{display:flex;gap:8px;flex-wrap:wrap}
+.cargo-plat{display:flex;align-items:center;gap:4px;padding:4px 10px;background:var(--bg);border-radius:20px;font-size:12px;color:var(--sub)}
+.tip-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);background:rgba(0,0,0,.75);color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;z-index:500;opacity:0;transition:all .2s;pointer-events:none;white-space:nowrap}
+.tip-toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.pb-bar{height:72px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="btn-back" onclick="goBack()">‹</div>
+  <div class="topbar-title" id="topTitle">商品详情</div>
+  <div class="topbar-actions">
+    <div class="topbar-icon" onclick="doShare()">⤴</div>
+    <div class="topbar-icon" onclick="openContact()">💬</div>
+  </div>
+</div>
+<div class="img-wrap" id="imgWrap">
+  <div class="img-track" id="imgTrack">
+    <div class="img-slide"><div class="img-placeholder">💎</div></div>
+  </div>
+  <div class="img-dots" id="imgDots"></div>
+</div>
+<div class="price-banner">
+  <div class="price-row">
+    <div class="price-main"><span>¥</span><span id="priceMain">--</span></div>
+    <div class="price-orig" id="priceOrig"></div>
+    <div class="price-badge" id="priceBadge" style="display:none">特惠</div>
+  </div>
+  <div class="goods-name" id="goodsName">加载中...</div>
+  <div class="goods-sub" id="goodsSub">优质天然水晶，精选好货</div>
+  <div class="price-tags">
+    <div class="price-tag">✅ 正品保证</div>
+    <div class="price-tag">🚚 全国包邮</div>
+    <div class="price-tag">💎 天然原石</div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">规格选择</div>
+  <div id="specArea" style="padding:4px 0"></div>
+  <div class="qty-row">
+    <div class="qty-label">购买数量</div>
+    <div class="qty-ctrl">
+      <button class="qty-btn" onclick="changeQty(-1)">−</button>
+      <div class="qty-num" id="qtyNum">1</div>
+      <button class="qty-btn" onclick="changeQty(1)">+</button>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">商品信息</div>
+  <div class="info-list">
+    <div class="info-row"><span class="info-key">商品编号</span><span class="info-val" id="infoId">--</span></div>
+    <div class="info-row"><span class="info-key">商品类别</span><span class="info-val" id="infoCat">--</span></div>
+    <div class="info-row"><span class="info-key">库存状态</span><span class="info-val"><span class="badge-green">现货充足</span></span></div>
+    <div class="info-row"><span class="info-key">发货时间</span><span class="info-val">付款后1-3天</span></div>
+    <div class="info-row"><span class="info-key">拿货说明</span><span class="info-val" style="cursor:pointer;color:var(--brand)" onclick="openCargo()">查看详情 →</span></div>
+  </div>
+</div>
+<div class="shop-card">
+  <div class="shop-avatar" id="shopAvatar">💎</div>
+  <div class="shop-info">
+    <div class="shop-name" id="shopName">星海水晶记</div>
+    <div class="shop-desc" id="shopDesc">精选天然水晶，优质好货等你来</div>
+  </div>
+  <div class="shop-enter" onclick="goFront()">进店 →</div>
+</div>
+<div class="card">
+  <div class="card-title">图文详情</div>
+  <div class="detail-placeholder"><div class="big-icon">💎</div><p>天然水晶，每一颗都是大自然的馈赠<br>精心筛选，品质保证</p></div>
+  <div class="detail-text" id="detailText"></div>
+</div>
+<div class="card" id="relatedCard">
+  <div class="card-title">猜你喜欢</div>
+  <div class="related-grid" id="relatedGrid"></div>
+</div>
+<div class="pb-bar"></div>
+<div class="bottom-bar">
+  <div class="bar-icon" onclick="openContact()"><span class="ico">💬</span><span>客服</span></div>
+  <div class="bar-icon" onclick="openCargo()"><span class="ico">📦</span><span>拿货</span></div>
+  <div class="bar-btns">
+    <div class="btn-cart" onclick="addToCart()">🛒 加入购物车</div>
+    <div class="btn-buy" onclick="openOrder()">立即咨询</div>
+  </div>
+</div>
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+<div class="sheet" id="orderSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title">提交询价</div><div class="sheet-close" onclick="closeAll()">✕</div></div>
+  <div class="order-item"><div class="order-img" id="ordImgEmoji">💎</div><div class="order-info"><div class="order-name" id="ordName">--</div><div class="order-spec" id="ordSpec">规格：请选择</div><div class="order-price" id="ordPrice">¥--</div></div></div>
+  <div class="form-group" style="margin-top:10px"><div class="form-label">联系方式（微信/手机）</div><input class="form-input" id="inpContact" placeholder="请输入您的微信号或手机号" type="text"></div>
+  <div class="form-group"><div class="form-label">收货地址</div><input class="form-input" id="inpAddr" placeholder="省/市/区 + 详细地址" type="text"></div>
+  <div class="form-group"><div class="form-label">备注（选填）</div><textarea class="form-input form-textarea" id="inpNote" placeholder="颜色、尺寸、数量等特殊要求"></textarea></div>
+  <button class="btn-submit" onclick="submitOrder()">提交询价</button>
+</div>
+<div class="sheet" id="contactSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title">联系商家</div><div class="sheet-close" onclick="closeAll()">✕</div></div>
+  <div class="contact-grid">
+    <div class="contact-item" onclick="callPhone()"><span class="contact-icon">📞</span><span class="contact-name">电话咨询</span></div>
+    <div class="contact-item" onclick="copyWechat()"><span class="contact-icon">💬</span><span class="contact-name">微信咨询</span></div>
+    <div class="contact-item" onclick="openOrder()"><span class="contact-icon">📋</span><span class="contact-name">提交询价</span></div>
+  </div>
+  <div style="padding:0 16px 8px"><div class="info-row" style="border-radius:10px;background:var(--bg)"><span class="info-key" style="font-size:12px">营业时间</span><span class="info-val" id="contactHours" style="font-size:12px">8:00-22:00</span></div></div>
+</div>
+<div class="sheet" id="cargoSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title">📦 拿货说明</div><div class="sheet-close" onclick="closeAll()">✕</div></div>
+  <div class="cargo-section"><h4>拿货流程</h4><ul class="cargo-steps"><li class="cargo-step"><span class="step-num">1</span><p>联系客服确认货源与价格</p></li><li class="cargo-step"><span class="step-num">2</span><p>确认报价后付款</p></li><li class="cargo-step"><span class="step-num">3</span><p>1-3个工作日内顺丰发货</p></li><li class="cargo-step"><span class="step-num">4</span><p>收货验货，7天内有问题联系客服</p></li></ul></div>
+  <div class="cargo-section"><h4>支持平台</h4><div class="cargo-platforms"><div class="cargo-plat">🎵 抖音</div><div class="cargo-plat">📱 快手</div><div class="cargo-plat">🛍️ 淘宝</div><div class="cargo-plat">🔵 京东</div><div class="cargo-plat">🟠 拼多多</div></div></div>
+  <div class="cargo-section"><h4>注意事项</h4><ul class="cargo-steps"><li class="cargo-step"><span class="step-num">!</span><p>天然水晶存在天然纹路，非质量问题</p></li><li class="cargo-step"><span class="step-num">!</span><p>大批量采购可享批发价</p></li></ul></div>
+</div>
+<div class="tip-toast" id="tipToast"></div>
+<script>
+const SHOP_KEY='shop_WH001',ORDER_KEY='wh_orders_WH001',LEGACY_KEY='wh_orders';
+const DEFAULT_GOODS=[
+  {id:'G001',name:'紫水晶手链',price:68,orig:128,cat:'手链',emoji:'💜',spec1:{name:'颜色',opts:['深紫','浅紫','薰衣草紫']},spec2:{name:'尺寸',opts:['16cm','17cm','18cm','19cm']},desc:'天然巴西紫水晶，颜色饱满，质地通透，具有促进睡眠、消除负能量的功效。'},
+  {id:'G002',name:'石榴石手链',price:88,orig:168,cat:'手链',emoji:'❤️',spec1:{name:'颜色',opts:['酒红','玫瑰红','暗红']},spec2:{name:'尺寸',opts:['16cm','17cm','18cm']},desc:'精选优质石榴石，颜色鲜艳，象征爱情与热情。'},
+  {id:'G003',name:'茶水晶手链',price:58,orig:98,cat:'手链',emoji:'🤎',spec1:{name:'颜色',opts:['浅茶','深茶','纯净茶']},spec2:{name:'尺寸',opts:['16cm','17cm','18cm','19cm','20cm']},desc:'天然茶水晶，通透清澈，性质温和，适合各年龄层佩戴。'},
+  {id:'G004',name:'茶水晶摆件',price:128,orig:0,cat:'摆件',emoji:'🧡',spec1:{name:'规格',opts:['小号','中号','大号']},spec2:{name:'款式',opts:['方形','圆形','心形']},desc:'精雕细琢的茶水晶摆件，天然纹路独特，是家居装饰的理想选择。'},
+  {id:'G005',name:'黑曜石手链',price:48,orig:88,cat:'手链',emoji:'🖤',spec1:{name:'颜色',opts:['纯黑','金曜石']},spec2:{name:'尺寸',opts:['16cm','17cm','18cm','19cm']},desc:'天然黑曜石，具有强大的辟邪防护能量。'},
+  {id:'G006',name:'粉晶手镯',price:198,orig:298,cat:'手镯',emoji:'💗',spec1:{name:'内径',opts:['55mm','56mm','57mm','58mm','59mm','60mm']},spec2:{name:'品质',opts:['A货','精品']},desc:'天然粉晶手镯，粉嫩可爱，象征爱情与友谊。'},
+  {id:'G007',name:'粉晶手链',price:78,orig:138,cat:'手链',emoji:'🌸',spec1:{name:'颜色',opts:['浅粉','中粉','深粉']},spec2:{name:'尺寸',opts:['16cm','17cm','18cm','19cm']},desc:'精选优质粉晶，颜色粉嫩温柔，象征爱与美丽。'},
+  {id:'G008',name:'绿幽灵手链',price:168,orig:268,cat:'手链',emoji:'💚',spec1:{name:'绿度',opts:['浅绿','翠绿','深绿']},spec2:{name:'尺寸',opts:['16cm','17cm','18cm']},desc:'天然绿幽灵水晶，象征财富与事业运。'},
+];
+let shopData={},goods=[],curGoods=null,selSpec1='',selSpec2='',qty=1,imgIdx=0,imgTotal=1;
+function init(){loadShop();loadGoods();const p=new URLSearchParams(location.search);const gid=p.get('id');curGoods=gid?(goods.find(g=>g.id===gid)||goods[0]):goods[0];renderDetail();renderRelated();}
+function loadShop(){try{shopData=JSON.parse(localStorage.getItem(SHOP_KEY)||'{}');}catch(e){shopData={};}
+  document.getElementById('shopName').textContent=shopData.name||'星海水晶记';
+  document.getElementById('shopDesc').textContent=shopData.sub||'精选天然水晶，优质好货等你来';
+  if(shopData.contact)document.getElementById('contactHours').textContent=shopData.contact.hours||'8:00-22:00';}
+function loadGoods(){goods=(shopData.goods&&shopData.goods.length)?shopData.goods:DEFAULT_GOODS;}
+function renderDetail(){
+  if(!curGoods)return;
+  document.getElementById('topTitle').textContent=curGoods.name;
+  document.getElementById('goodsName').textContent=curGoods.name;
+  document.getElementById('goodsSub').textContent=curGoods.desc||'优质天然水晶，精选好货';
+  document.getElementById('priceMain').textContent=curGoods.price;
+  if(curGoods.orig&&curGoods.orig>curGoods.price){document.getElementById('priceOrig').textContent='¥'+curGoods.orig;document.getElementById('priceBadge').style.display='inline-block';}
+  document.getElementById('infoId').textContent=curGoods.id||'G001';
+  document.getElementById('infoCat').textContent=curGoods.cat||'手链';
+  if(curGoods.desc)document.getElementById('detailText').textContent=curGoods.desc;
+  const track=document.getElementById('imgTrack'),dots=document.getElementById('imgDots');
+  track.innerHTML='';dots.innerHTML='';imgTotal=1;
+  const slide=document.createElement('div');slide.className='img-slide';
+  slide.innerHTML='<div class="img-placeholder">'+(curGoods.emoji||'💎')+'</div>';
+  track.appendChild(slide);imgIdx=0;initImgSwipe();
+  const area=document.getElementById('specArea');area.innerHTML='';selSpec1='';selSpec2='';
+  if(curGoods.spec1)area.appendChild(buildSpecGroup(curGoods.spec1.name,curGoods.spec1.opts,1));
+  if(curGoods.spec2)area.appendChild(buildSpecGroup(curGoods.spec2.name,curGoods.spec2.opts,2));
+  if(!curGoods.spec1&&!curGoods.spec2)area.innerHTML='<p style="color:var(--sub);font-size:13px;padding:12px 16px">该商品无需选择规格</p>';
+  qty=1;document.getElementById('qtyNum').textContent='1';updateOrderPanel();}
+function buildSpecGroup(name,opts,idx){const div=document.createElement('div');div.className='spec-group';
+  div.innerHTML='<div class="spec-label">'+name+'</div><div class="spec-options" id="spec'+idx+'opts"></div>';
+  const c=div.querySelector('#spec'+idx+'opts');
+  opts.forEach(opt=>{const btn=document.createElement('button');btn.className='spec-btn';btn.textContent=opt;btn.onclick=()=>selSpec(idx,opt,btn);c.appendChild(btn);});return div;}
+function selSpec(idx,val,btn){btn.parentNode.querySelectorAll('.spec-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(idx===1)selSpec1=val;else selSpec2=val;updateOrderPanel();}
+function updateOrderPanel(){if(!curGoods)return;document.getElementById('ordName').textContent=curGoods.name;const parts=[];if(curGoods.spec1&&selSpec1)parts.push(curGoods.spec1.name+':'+selSpec1);if(curGoods.spec2&&selSpec2)parts.push(curGoods.spec2.name+':'+selSpec2);document.getElementById('ordSpec').textContent=parts.length?parts.join('，'):'请先选择规格';document.getElementById('ordPrice').textContent='¥'+(curGoods.price*qty);document.getElementById('ordImgEmoji').textContent=curGoods.emoji||'💎';}
+function renderRelated(){const grid=document.getElementById('relatedGrid');const related=goods.filter(g=>g.id!==(curGoods&&curGoods.id)).slice(0,4);if(!related.length){document.getElementById('relatedCard').style.display='none';return;}grid.innerHTML=related.map(g=>'<div class="related-card" onclick="switchGoods(\''+g.id+'\')">'+'<div class="related-img">'+(g.emoji||'💎')+'</div>'+'<div class="related-info"><div class="related-name">'+g.name+'</div><div class="related-price">¥'+g.price+'</div></div></div>').join('');}
+function switchGoods(gid){curGoods=goods.find(g=>g.id===gid);window.scrollTo(0,0);renderDetail();renderRelated();history.replaceState(null,'','?id='+gid);}
+function initImgSwipe(){const track=document.getElementById('imgTrack'),wrap=document.getElementById('imgWrap');let sx=0,drag=false;wrap.ontouchstart=e=>{sx=e.touches[0].clientX;drag=true;};wrap.ontouchend=e=>{if(!drag)return;drag=false;const dx=e.changedTouches[0].clientX-sx;if(dx<-40&&imgIdx<imgTotal-1)imgIdx++;else if(dx>40&&imgIdx>0)imgIdx--;track.style.transition='transform .35s ease';track.style.transform='translateX(-'+imgIdx*100+'%)';};}
+function changeQty(d){qty=Math.max(1,Math.min(99,qty+d));document.getElementById('qtyNum').textContent=qty;updateOrderPanel();}
+function showOverlay(){document.getElementById('overlay').classList.add('show');}
+function closeAll(){document.getElementById('overlay').classList.remove('show');document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('show'));}
+function openOrder(){closeAll();if(curGoods&&curGoods.spec1&&!selSpec1){tip('请先选择'+curGoods.spec1.name);return;}if(curGoods&&curGoods.spec2&&!selSpec2){tip('请先选择'+curGoods.spec2.name);return;}updateOrderPanel();showOverlay();document.getElementById('orderSheet').classList.add('show');}
+function openContact(){closeAll();showOverlay();document.getElementById('contactSheet').classList.add('show');}
+function openCargo(){closeAll();showOverlay();document.getElementById('cargoSheet').classList.add('show');}
+function submitOrder(){const contact=document.getElementById('inpContact').value.trim(),addr=document.getElementById('inpAddr').value.trim();if(!contact){tip('请填写联系方式');return;}if(!addr){tip('请填写收货地址');return;}const spec=document.getElementById('ordSpec').textContent;const order={id:'O'+Date.now(),gid:curGoods.id,name:curGoods.name,emoji:curGoods.emoji||'💎',spec,qty,price:curGoods.price,total:curGoods.price*qty,contact,addr,note:document.getElementById('inpNote').value.trim(),status:'待确认',time:new Date().toLocaleString('zh-CN')};try{const raw=localStorage.getItem(ORDER_KEY);const orders=raw?JSON.parse(raw):[];orders.unshift(order);localStorage.setItem(ORDER_KEY,JSON.stringify(orders));localStorage.setItem(LEGACY_KEY,JSON.stringify(orders));}catch(e){}closeAll();tip('询价已提交，商家将尽快联系您！');document.getElementById('inpContact').value='';document.getElementById('inpAddr').value='';document.getElementById('inpNote').value='';}
+function addToCart(){if(curGoods&&curGoods.spec1&&!selSpec1){tip('请先选择'+curGoods.spec1.name);return;}if(curGoods&&curGoods.spec2&&!selSpec2){tip('请先选择'+curGoods.spec2.name);return;}tip('已加入购物车！可联系客服确认订单');}
+function callPhone(){const phone=shopData&&shopData.contact&&shopData.contact.phone;if(!phone){tip('暂无电话信息');return;}window.location.href='tel:'+phone;}
+function copyWechat(){const wx=shopData&&shopData.contact&&shopData.contact.wechat;if(!wx){tip('暂无微信信息');return;}if(navigator.clipboard){navigator.clipboard.writeText(wx).then(()=>tip('微信号已复制：'+wx));}else{const ta=document.createElement('textarea');ta.value=wx;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);tip('微信号已复制：'+wx);}}
+function doShare(){if(navigator.share){navigator.share({title:curGoods&&curGoods.name||'商品详情',url:location.href});}else{tip('请复制链接分享给朋友');}}
+function goBack(){if(document.referrer&&document.referrer.indexOf(location.hostname)>-1){history.back();}else{location.href='crystal_real.html';}}
+function goFront(){location.href='crystal_real.html';}
+function tip(msg){const el=document.getElementById('tipToast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200);}
+init();
+</script>
+</body>
+</html>
