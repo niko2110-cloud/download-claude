@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>中国东海星海水晶记展示店</title>
+<style>
+:root{--pri:#7c3aed;--pri-d:#4c1d95;--pri-l:#ede9fe;--gold:#f59e0b;--red:#ef4444;--green:#10b981;--dark:#1a1a1a;--gray:#888;--lgray:#bbb;--border:#f0f0f0;--bg:#f5f4ff;--white:#fff;--r:14px;--sh:0 2px 12px rgba(124,58,237,.08);--sh2:0 4px 24px rgba(124,58,237,.14);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--dark);max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:68px;}
+
+/* TOP BAR */
+.topbar{position:sticky;top:0;z-index:100;background:linear-gradient(135deg,var(--pri-d),var(--pri));padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.tb-logo{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;flex-shrink:0;}
+.tb-logo img{width:100%;height:100%;object-fit:cover;}
+.tb-info{flex:1;min-width:0;}
+.tb-name{font-size:15px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tb-sub{font-size:11px;color:rgba(255,255,255,.75);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tb-btn{background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+
+/* HERO BANNER */
+.hero{position:relative;overflow:hidden;background:var(--pri-d);}
+.hero-track{display:flex;transition:transform .42s cubic-bezier(.4,0,.2,1);height:256px;}
+.hero-slide{min-width:100%;height:256px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden;}
+.hero-slide img{width:100%;height:100%;object-fit:cover;}
+.hs-ph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
+.hs1{background:linear-gradient(135deg,#3b0764,#7c3aed);}
+.hs2{background:linear-gradient(135deg,#1e1b4b,#4c1d95);}
+.hs3{background:linear-gradient(135deg,#4a044e,#a21caf);}
+.hs4{background:linear-gradient(135deg,#1e3a5f,#1d4ed8);}
+.hs-em{font-size:72px;filter:drop-shadow(0 4px 16px rgba(0,0,0,.3));}
+.hs-txt{color:rgba(255,255,255,.9);font-size:16px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.4);}
+.hero-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.55));padding:24px 14px 12px;display:flex;align-items:flex-end;justify-content:space-between;}
+.hero-cap{color:#fff;font-size:15px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.4);}
+.hero-dots{display:flex;gap:5px;align-items:center;}
+.hdot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.45);transition:all .25s;}
+.hdot.on{width:18px;border-radius:3px;background:#fff;}
+
+/* TAGS BAR */
+.tags-bar{background:var(--white);padding:10px 14px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--border);}
+.stag{font-size:11px;padding:3px 9px;border-radius:10px;background:var(--pri-l);color:var(--pri);font-weight:600;}
+
+/* TICKER */
+.ticker{margin:10px 14px;background:linear-gradient(135deg,#fffbeb,#fef3c7);border-left:4px solid var(--gold);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;}
+.ticker-ic{font-size:16px;flex-shrink:0;}
+.ticker-txt{font-size:13px;color:#92400e;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* STATS */
+.stats{display:flex;background:var(--white);margin:0 14px 10px;border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
+.stat{flex:1;text-align:center;padding:12px 4px;border-right:1px solid var(--border);}
+.stat:last-child{border-right:none;}
+.stat-n{font-size:18px;font-weight:800;color:var(--pri);line-height:1;}
+.stat-l{font-size:10px;color:var(--gray);margin-top:3px;}
+
+/* SHORTCUTS */
+.shortcuts{background:var(--white);margin:0 14px 10px;border-radius:var(--r);padding:16px 12px;box-shadow:var(--sh);}
+.sc-hd{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.sc-hd::before{content:'';display:inline-block;width:4px;height:14px;background:var(--pri);border-radius:2px;}
+.sc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.sc-item{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;}
+.sc-ic{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;transition:transform .15s;}
+.sc-item:active .sc-ic{transform:scale(.92);}
+.sc-lb{font-size:11px;color:var(--dark);}
+.c1{background:linear-gradient(135deg,#10b981,#34d399);}
+.c2{background:linear-gradient(135deg,#f59e0b,#fbbf24);}
+.c3{background:linear-gradient(135deg,#ef4444,#f87171);}
+.c4{background:linear-gradient(135deg,#3b82f6,#60a5fa);}
+.c5{background:linear-gradient(135deg,#7c3aed,#a78bfa);}
+.c6{background:linear-gradient(135deg,#ec4899,#f472b6);}
+.c7{background:linear-gradient(135deg,#14b8a6,#2dd4bf);}
+.c8{background:linear-gradient(135deg,#f97316,#fb923c);}
+
+/* SECTION HEADER */
+.sec-hd{display:flex;align-items:center;justify-content:space-between;padding:0 14px;margin-bottom:10px;}
+.sec-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.sec-title::before{content:'';display:inline-block;width:4px;height:17px;background:var(--pri);border-radius:2px;}
+.sec-more{font-size:13px;color:var(--pri);cursor:pointer;}
+
+/* SEARCH */
+.search-bar{margin:0 14px 12px;background:var(--white);border-radius:26px;padding:10px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh);border:1.5px solid var(--border);}
+.search-bar input{flex:1;border:none;outline:none;font-size:14px;color:var(--dark);background:none;}
+.search-bar input::placeholder{color:var(--lgray);}
+.s-ic{font-size:18px;color:var(--lgray);}
+
+/* CAT TABS */
+.cat-tabs{padding:0 14px 12px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;white-space:nowrap;}
+.cat-tabs::-webkit-scrollbar{display:none;}
+.ctab{flex-shrink:0;padding:7px 16px;border-radius:20px;font-size:13px;cursor:pointer;background:var(--white);color:#666;border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06);transition:all .2s;}
+.ctab.on{background:var(--pri);color:#fff;border-color:var(--pri);font-weight:600;}
+.cats-panel{display:none;margin:0 14px 12px;background:var(--white);border-radius:var(--r);padding:14px;box-shadow:var(--sh);}
+.cats-panel.show{display:block;}
+.cat-row{padding:13px 0;border-bottom:1px solid var(--border);font-size:14px;color:#333;cursor:pointer;display:flex;align-items:center;gap:10px;}
+.cat-row:last-child{border-bottom:none;}
+.cat-row:active{color:var(--pri);}
+
+/* GOODS GRID */
+.goods-grid{padding:0 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.good-card{background:var(--white);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);cursor:pointer;transition:transform .15s;}
+.good-card:active{transform:scale(.98);}
+.good-img{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:52px;position:relative;overflow:hidden;}
+.good-img img{width:100%;height:100%;object-fit:cover;}
+.gi1{background:linear-gradient(135deg,#e9d5ff,#c4b5fd);}
+.gi2{background:linear-gradient(135deg,#fce7f3,#fbcfe8);}
+.gi3{background:linear-gradient(135deg,#d1fae5,#a7f3d0);}
+.gi4{background:linear-gradient(135deg,#fef3c7,#fde68a);}
+.gi5{background:linear-gradient(135deg,#1e1b4b,#312e81);color:#fff;}
+.gi6{background:linear-gradient(135deg,#fce7f3,#f9a8d4);}
+.gi7{background:linear-gradient(135deg,#fee2e2,#fca5a5);}
+.gi8{background:linear-gradient(135deg,#ecfdf5,#6ee7b7);}
+.g-badge{position:absolute;top:8px;left:8px;font-size:10px;padding:3px 7px;border-radius:5px;font-weight:700;}
+.b-new{background:var(--pri);color:#fff;}
+.b-hot{background:var(--red);color:#fff;}
+.good-info{padding:10px;}
+.good-name{font-size:13px;font-weight:600;line-height:1.5;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.good-spec{font-size:11px;color:var(--gray);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.good-bot{display:flex;align-items:center;justify-content:space-between;}
+.good-price{font-size:18px;font-weight:800;color:#e11d48;}
+.good-price::before{content:'¥';font-size:12px;}
+.ask-btn{background:var(--pri);color:#fff;border:none;border-radius:16px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;}
+
+/* VIDEO SECTION */
+.video-scroll{padding:0 14px;display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;}
+.video-scroll::-webkit-scrollbar{display:none;}
+.v-card{flex-shrink:0;width:140px;border-radius:var(--r);overflow:hidden;background:var(--white);box-shadow:var(--sh);cursor:pointer;}
+.v-thumb{width:140px;height:190px;display:flex;align-items:center;justify-content:center;position:relative;}
+.vt1{background:linear-gradient(135deg,#4c1d95,#7c3aed);}
+.vt2{background:linear-gradient(135deg,#1e3a5f,#1d4ed8);}
+.vt3{background:linear-gradient(135deg,#064e3b,#10b981);}
+.vt4{background:linear-gradient(135deg,#7f1d1d,#ef4444);}
+.vt5{background:linear-gradient(135deg,#78350f,#f59e0b);}
+.v-play{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.25);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.v-info{padding:8px 10px;}
+.v-title{font-size:12px;font-weight:600;line-height:1.5;}
+.v-views{font-size:10px;color:var(--gray);margin-top:2px;}
+
+/* VIDEO GRID (library-style) */
+.v-grid{padding:0 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.v-grid-card{background:var(--white);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);cursor:pointer;}
+.vg-thumb{width:100%;height:130px;display:flex;align-items:center;justify-content:center;}
+.vg-info{padding:8px 10px;}
+
+/* LIBRARY */
+.lib-list{padding:0 14px;display:flex;flex-direction:column;gap:10px;}
+.lib-card{background:var(--white);border-radius:var(--r);padding:14px;box-shadow:var(--sh);display:flex;gap:12px;cursor:pointer;}
+.lib-ic{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.li1{background:linear-gradient(135deg,#ede9fe,#c4b5fd);}
+.li2{background:linear-gradient(135deg,#fef3c7,#fde68a);}
+.li3{background:linear-gradient(135deg,#ecfdf5,#6ee7b7);}
+.lib-cnt{flex:1;min-width:0;}
+.lib-title{font-size:14px;font-weight:600;margin-bottom:4px;}
+.lib-desc{font-size:12px;color:var(--gray);line-height:1.6;}
+.lib-meta{font-size:11px;color:var(--lgray);margin-top:6px;}
+
+/* SOCIAL ROW */
+.social-row{padding:0 14px 12px;display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;}
+.social-row::-webkit-scrollbar{display:none;}
+.soc-item{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;}
+.soc-ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--pri-l);}
+.soc-lb{font-size:10px;color:var(--gray);}
+
+/* SHOP INTRO */
+.shop-intro{margin:0 14px 10px;background:var(--white);border-radius:var(--r);padding:16px;box-shadow:var(--sh);}
+.intro-hd{font-size:14px;font-weight:700;color:var(--pri);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.intro-txt{font-size:13px;color:#444;line-height:1.9;}
+
+/* CONTACT PAGE */
+.contact-hero{background:linear-gradient(135deg,var(--pri-d),var(--pri));border-radius:var(--r);padding:20px;color:#fff;margin:14px 14px 12px;}
+.ch-title{font-size:16px;font-weight:700;margin-bottom:14px;}
+.ch-btns{display:flex;gap:10px;}
+.ch-btn{flex:1;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.3);border-radius:12px;padding:12px 6px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.ch-btn:active{opacity:.8;}
+.ch-ic{font-size:22px;}
+.info-card{background:var(--white);border-radius:var(--r);padding:18px;margin:0 14px 12px;box-shadow:var(--sh);}
+.ic-title{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.ic-title::before{content:'';display:inline-block;width:4px;height:16px;background:var(--pri);border-radius:2px;}
+.ic-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.ic-row:last-child{margin-bottom:0;}
+.ic-em{font-size:20px;flex-shrink:0;}
+.ic-label{font-size:11px;color:var(--gray);margin-bottom:2px;}
+.ic-val{font-size:14px;font-weight:600;}
+
+/* ORDERS */
+.orders-box{margin:10px 14px;background:var(--white);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
+.orders-hd{padding:14px;font-size:14px;font-weight:700;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.orders-clear{font-size:12px;color:var(--gray);font-weight:400;cursor:pointer;}
+.otabs{display:flex;border-bottom:1px solid var(--border);}
+.otab{flex:1;text-align:center;padding:10px 4px;font-size:12px;color:var(--gray);cursor:pointer;position:relative;}
+.otab.on{color:var(--pri);font-weight:600;}
+.otab.on::after{content:'';position:absolute;bottom:0;left:25%;width:50%;height:2px;background:var(--pri);border-radius:1px;}
+.o-empty{padding:28px;text-align:center;color:var(--gray);font-size:13px;}
+.o-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);}
+.o-item:last-child{border-bottom:none;}
+.o-thumb{width:46px;height:46px;border-radius:10px;background:var(--pri-l);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.o-detail{flex:1;min-width:0;}
+.o-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.o-time{font-size:11px;color:var(--gray);margin-top:2px;}
+.o-right{text-align:right;flex-shrink:0;}
+.o-price{font-size:14px;font-weight:700;color:#e11d48;}
+.o-status{font-size:10px;padding:2px 8px;border-radius:8px;margin-top:3px;display:inline-block;}
+.st-wait{background:#fff3e0;color:#f57c00;}
+.st-done{background:#e8f5e9;color:#388e3c;}
+
+/* BOTTOM NAV */
+.bot-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--white);border-top:1px solid var(--border);display:flex;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,.07);}
+.bn{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;cursor:pointer;font-size:10px;color:var(--gray);gap:3px;transition:color .15s;position:relative;}
+.bn.on{color:var(--pri);}
+.bn-ic{font-size:22px;}
+.bn-dot{position:absolute;top:7px;right:12px;width:8px;height:8px;background:var(--red);border-radius:50%;display:none;}
+.bn-dot.show{display:block;}
+
+/* MODALS */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;opacity:0;transition:opacity .25s;pointer-events:none;}
+.mask.show{opacity:1;pointer-events:all;}
+.panel{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:480px;background:var(--white);border-radius:20px 20px 0 0;z-index:201;transition:transform .3s cubic-bezier(.4,0,.2,1);max-height:90vh;overflow-y:auto;}
+.panel.show{transform:translateX(-50%) translateY(0);}
+.panel-hd{padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--white);z-index:1;}
+.panel-hd h3{font-size:16px;font-weight:700;}
+.panel-close{background:#f0f0f0;border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.panel-body{padding:16px;}
+.cargo-item{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);}
+.cargo-item:last-child{border-bottom:none;}
+.cargo-ic{font-size:24px;flex-shrink:0;margin-top:2px;}
+.cargo-content h4{font-size:14px;font-weight:700;margin-bottom:5px;}
+.cargo-content p{font-size:13px;color:#555;line-height:1.8;}
+.cargo-tip{background:#fffbeb;border-radius:10px;padding:12px;margin-top:12px;font-size:13px;color:#92400e;line-height:1.7;}
+
+/* DETAIL MODAL */
+.detail-img{height:276px;display:flex;align-items:center;justify-content:center;font-size:88px;position:relative;overflow:hidden;}
+.detail-img img{width:100%;height:100%;object-fit:cover;}
+.d-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.35);border:none;cursor:pointer;font-size:16px;color:#fff;display:flex;align-items:center;justify-content:center;}
+.detail-body{padding:16px;}
+.d-price-row{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;}
+.d-price{font-size:28px;font-weight:800;color:#e11d48;}
+.d-price::before{content:'¥';font-size:16px;}
+.d-ori{font-size:13px;color:var(--lgray);text-decoration:line-through;}
+.d-sold{font-size:12px;color:var(--gray);margin-left:auto;}
+.d-name{font-size:17px;font-weight:700;line-height:1.5;margin-bottom:10px;}
+.d-spec{font-size:13px;color:var(--gray);margin-bottom:14px;}
+.spec-sec{margin-bottom:14px;}
+.spec-title{font-size:13px;font-weight:600;margin-bottom:8px;}
+.spec-opts{display:flex;gap:8px;flex-wrap:wrap;}
+.spec-opt{padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:12px;cursor:pointer;background:var(--white);transition:all .15s;}
+.spec-opt.on{border-color:var(--pri);color:var(--pri);background:var(--pri-l);font-weight:600;}
+.d-desc-box{background:#f9f9f9;border-radius:10px;padding:14px;margin-bottom:16px;}
+.d-desc-title{font-size:12px;font-weight:700;color:#555;margin-bottom:8px;}
+.d-desc-txt{font-size:13px;color:#444;line-height:1.9;}
+.d-actions{display:flex;gap:10px;position:sticky;bottom:0;background:var(--white);padding:12px 0 4px;}
+.d-btn{flex:1;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;}
+.d-wechat{background:var(--green);color:#fff;}
+.d-order{background:var(--pri);color:#fff;}
+
+/* PAGE SYSTEM */
+.page{display:none;}
+.page.active{display:block;}
+
+/* TOAST */
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.85);background:rgba(0,0,0,.75);color:#fff;padding:12px 24px;border-radius:10px;font-size:13px;z-index:9999;opacity:0;transition:all .2s;pointer-events:none;white-space:pre-line;text-align:center;max-width:280px;}
+.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1);}
+
+/* SECTION WRAP */
+.sec-wrap{margin:16px 0;}
+.mb10{margin-bottom:10px;}
+.icp{text-align:center;padding:16px 0 6px;font-size:11px;color:#bbb;}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="tb-logo" id="topLogo">💎</div>
+  <div class="tb-info">
+    <div class="tb-name" id="topName">中国东海星海水晶记展示店</div>
+    <div class="tb-sub" id="topSub">国学随身美饰 · 国潮手作记 · 五行穿搭局</div>
+  </div>
+  <button class="tb-btn" onclick="contactUs()">💬 咨询</button>
+</div>
+
+<!-- ===== 首页 ===== -->
+<div class="page active" id="page-home">
+
+  <!-- Hero Banner -->
+  <div class="hero">
+    <div class="hero-track" id="heroTrack">
+      <div class="hero-slide hs1"><div class="hs-ph"><div class="hs-em">💎</div><div class="hs-txt">东海水晶 · 产地直供</div></div></div>
+      <div class="hero-slide hs2"><div class="hs-ph"><div class="hs-em">🔮</div><div class="hs-txt">天然水晶 · 一物一证书</div></div></div>
+      <div class="hero-slide hs3"><div class="hs-ph"><div class="hs-em">💜</div><div class="hs-txt">紫水晶系列 · 新品上市</div></div></div>
+      <div class="hero-slide hs4"><div class="hs-ph"><div class="hs-em">✨</div><div class="hs-txt">批发代理 · 欢迎合作</div></div></div>
+    </div>
+    <div class="hero-overlay">
+      <div class="hero-cap" id="heroCap">东海水晶 · 产地直供</div>
+      <div class="hero-dots" id="heroDots">
+        <div class="hdot on"></div><div class="hdot"></div><div class="hdot"></div><div class="hdot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tags -->
+  <div class="tags-bar" id="tagsBar">
+    <span class="stag">⭐ 优质商家</span>
+    <span class="stag">✅ 一物一证书</span>
+    <span class="stag">🚚 顺丰包邮</span>
+  </div>
+
+  <!-- Ticker -->
+  <div class="ticker">
+    <div class="ticker-ic">📢</div>
+    <div class="ticker-txt" id="tickerTxt">🆕 新品持续上架，天然紫水晶、茶水晶、石榴石系列热卖中！⏰ 营业 9:00–22:00 · 一物一证书 · 批发合作欢迎咨询</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat"><div class="stat-n">200+</div><div class="stat-l">商品</div></div>
+    <div class="stat"><div class="stat-n">4.9</div><div class="stat-l">评分</div></div>
+    <div class="stat"><div class="stat-n">5000+</div><div class="stat-l">成交</div></div>
+    <div class="stat"><div class="stat-n">99%</div><div class="stat-l">好评</div></div>
+  </div>
+
+  <!-- Shortcuts -->
+  <div class="shortcuts">
+    <div class="sc-hd">快捷入口</div>
+    <div class="sc-grid">
+      <div class="sc-item" onclick="contactUs()"><div class="sc-ic c1">💬</div><div class="sc-lb">微信咨询</div></div>
+      <div class="sc-item" onclick="openCargo()"><div class="sc-ic c2">📦</div><div class="sc-lb">拿货说明</div></div>
+      <div class="sc-item" onclick="switchNav('video')"><div class="sc-ic c3">🎬</div><div class="sc-lb">视频看货</div></div>
+      <div class="sc-item" onclick="switchNav('library')"><div class="sc-ic c4">📚</div><div class="sc-lb">文库资料</div></div>
+      <div class="sc-item" onclick="switchNav('goods')"><div class="sc-ic c5">💎</div><div class="sc-lb">全部商品</div></div>
+      <div class="sc-item" onclick="tip('批发代理欢迎加微信：13663282253\n可安排产地实地考察')"><div class="sc-ic c6">🤝</div><div class="sc-lb">批发合作</div></div>
+      <div class="sc-item" onclick="doShare()"><div class="sc-ic c7">📤</div><div class="sc-lb">分享店铺</div></div>
+      <div class="sc-item" onclick="openCargo()"><div class="sc-ic c8">🚚</div><div class="sc-lb">发货说明</div></div>
+    </div>
+  </div>
+
+  <!-- Hot Products -->
+  <div class="sec-wrap">
+    <div class="sec-hd mb10">
+      <div class="sec-title">✨ 热门推荐</div>
+      <span class="sec-more" onclick="switchNav('goods')">更多 ›</span>
+    </div>
+    <div class="search-bar">
+      <span class="s-ic">🔍</span>
+      <input type="text" placeholder="搜索水晶、手链、吊坠..." id="searchInp" oninput="filterGoods()">
+    </div>
+    <div class="cat-tabs" id="catTabs">
+      <div class="ctab on" onclick="switchCat(this,'new')">✨ 新品推荐</div>
+      <div class="ctab" onclick="switchCat(this,'all')">📦 全部商品</div>
+      <div class="ctab" onclick="toggleCatPanel(this)">🗂 全部分类 ▾</div>
+    </div>
+    <div class="cats-panel" id="catsPanel"><div id="catsList"></div></div>
+    <div class="goods-grid" id="goodsGrid"></div>
+  </div>
+
+  <!-- Shop Intro -->
+  <div class="shop-intro">
+    <div class="intro-hd">🏪 店铺介绍</div>
+    <div class="intro-txt" id="introTxt">国学随身美饰，国潮手作记，五行穿搭局。用现代科技赋能传统智慧，灵感与传统文化结合，打造你的专属开运潮物。当国学遇上潮物，用千年智慧打造年轻人的潮物，带你玩转新中式生活。</div>
+  </div>
+
+  <!-- Social -->
+  <div class="sec-wrap">
+    <div class="sec-hd mb10"><div class="sec-title">我们在这里</div></div>
+    <div class="social-row">
+      <div class="soc-item" onclick="tip('抖音：搜索 星海水晶记')"><div class="soc-ic">📱</div><div class="soc-lb">抖音</div></div>
+      <div class="soc-item" onclick="tip('快手：搜索 星海水晶记')"><div class="soc-ic">🎥</div><div class="soc-lb">快手</div></div>
+      <div class="soc-item" onclick="tip('视频号：搜索 星海水晶记')"><div class="soc-ic">📹</div><div class="soc-lb">视频号</div></div>
+      <div class="soc-item" onclick="tip('公众号：星海水晶记')"><div class="soc-ic">📰</div><div class="soc-lb">公众号</div></div>
+      <div class="soc-item" onclick="tip('小红书：搜索 星海水晶记')"><div class="soc-ic">📕</div><div class="soc-lb">小红书</div></div>
+      <div class="soc-item" onclick="tip('淘宝：搜索 星海水晶记')"><div class="soc-ic">🛒</div><div class="soc-lb">淘宝</div></div>
+      <div class="soc-item" onclick="tip('京东：搜索 星海水晶记')"><div class="soc-ic">📦</div><div class="soc-lb">京东</div></div>
+      <div class="soc-item" onclick="tip('拼多多：搜索 星海水晶记')"><div class="soc-ic">🏷️</div><div class="soc-lb">拼多多</div></div>
+    </div>
+  </div>
+
+  <!-- Orders -->
+  <div class="orders-box">
+    <div class="orders-hd"><span>📋 我的咨询记录</span><span class="orders-clear" onclick="clearOrders()">清空</span></div>
+    <div class="otabs">
+      <div class="otab on" onclick="switchOtab(this,'all')">全部</div>
+      <div class="otab" onclick="switchOtab(this,'wait')">待回复</div>
+      <div class="otab" onclick="switchOtab(this,'done')">已完成</div>
+    </div>
+    <div id="orderList"></div>
+  </div>
+
+  <div class="icp"><a href="https://beian.miit.gov.cn" target="_blank" style="color:#bbb;text-decoration:none;">冀ICP备2026012724号</a></div>
+</div>
+
+<!-- ===== 商品页 ===== -->
+<div class="page" id="page-goods">
+  <div style="padding:14px;">
+    <div class="search-bar" style="margin:0 0 12px;">
+      <span class="s-ic">🔍</span>
+      <input type="text" placeholder="搜索商品..." id="searchInp2" oninput="filterGoods2()">
+    </div>
+    <div class="cat-tabs" id="catTabs2"><div class="ctab on" onclick="switchCat2(this,'all')">📦 全部</div></div>
+    <div class="goods-grid" id="goodsGrid2" style="padding:12px 0 0;"></div>
+  </div>
+</div>
+
+<!-- ===== 视频页 ===== -->
+<div class="page" id="page-video">
+  <div class="sec-wrap" style="padding-top:14px;">
+    <div class="sec-hd mb10"><div class="sec-title">🎬 视频看货</div></div>
+    <div class="video-scroll">
+      <div class="v-card" onclick="tip('视频播放即将上线\n请先微信咨询：13663282253')"><div class="v-thumb vt1"><div class="v-play">▶️</div></div><div class="v-info"><div class="v-title">紫水晶原石吊坠新品展示</div><div class="v-views">👁 1.2k</div></div></div>
+      <div class="v-card" onclick="tip('视频播放即将上线\n请先微信咨询：13663282253')"><div class="v-thumb vt2"><div class="v-play">▶️</div></div><div class="v-info"><div class="v-title">石榴石手链佩戴效果展示</div><div class="v-views">👁 980</div></div></div>
+      <div class="v-card" onclick="tip('视频播放即将上线\n请先微信咨询：13663282253')"><div class="v-thumb vt3"><div class="v-play">▶️</div></div><div class="v-info"><div class="v-title">茶水晶手链产地实拍</div><div class="v-views">👁 756</div></div></div>
+      <div class="v-card" onclick="tip('视频播放即将上线\n请先微信咨询：13663282253')"><div class="v-thumb vt4"><div class="v-play">▶️</div></div><div class="v-info"><div class="v-title">黑曜石手链辟邪守护</div><div class="v-views">👁 654</div></div></div>
+      <div class="v-card" onclick="tip('视频播放即将上线\n请先微信咨询：13663282253')"><div class="v-thumb vt5"><div class="v-play">▶️</div></div><div class="v-info"><div class="v-title">绿幽灵水晶球风水摆件</div><div class="v-views">👁 532</div></div></div>
+    </div>
+    <div class="v-grid">
+      <div class="v-grid-card" onclick="tip('请联系微信查看视频')"><div class="vg-thumb vt1"><div class="v-play">▶️</div></div><div class="vg-info"><div class="v-title">东海水晶矿区探访</div><div class="v-views">👁 2.1k</div></div></div>
+      <div class="v-grid-card" onclick="tip('请联系微信查看视频')"><div class="vg-thumb vt2"><div class="v-play">▶️</div></div><div class="vg-info"><div class="v-title">如何鉴别天然水晶</div><div class="v-views">👁 1.8k</div></div></div>
+      <div class="v-grid-card" onclick="tip('请联系微信查看视频')"><div class="vg-thumb vt3"><div class="v-play">▶️</div></div><div class="vg-info"><div class="v-title">水晶手链搭配指南</div><div class="v-views">👁 1.3k</div></div></div>
+      <div class="v-grid-card" onclick="tip('请联系微信查看视频')"><div class="vg-thumb vt4"><div class="v-play">▶️</div></div><div class="vg-info"><div class="v-title">紫水晶的功效与作用</div><div class="v-views">👁 990</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 文库页 ===== -->
+<div class="page" id="page-library">
+  <div class="sec-wrap" style="padding-top:14px;">
+    <div class="sec-hd mb10"><div class="sec-title">📚 文库资料</div></div>
+    <div class="lib-list">
+      <div class="lib-card" onclick="tip('完整内容请微信咨询：13663282253')"><div class="lib-ic li1">💎</div><div class="lib-cnt"><div class="lib-title">水晶鉴别完全指南</div><div class="lib-desc">如何辨别天然水晶与仿制品，从光泽、温度、重量三个维度快速鉴别...</div><div class="lib-meta">📖 约5分钟 · 水晶知识</div></div></div>
+      <div class="lib-card" onclick="tip('完整内容请微信咨询：13663282253')"><div class="lib-ic li2">🧘</div><div class="lib-cnt"><div class="lib-title">五行与水晶能量对照表</div><div class="lib-desc">根据生辰八字选择适合自己的水晶，让能量加持更有针对性...</div><div class="lib-meta">📖 约8分钟 · 玄学文化</div></div></div>
+      <div class="lib-card" onclick="tip('完整内容请微信咨询：13663282253')"><div class="lib-ic li3">🌿</div><div class="lib-cnt"><div class="lib-title">水晶保养与净化方法</div><div class="lib-desc">水晶佩戴后如何净化能量、日常保养避免损坏，延长使用寿命...</div><div class="lib-meta">📖 约4分钟 · 保养技巧</div></div></div>
+      <div class="lib-card" onclick="tip('完整内容请微信咨询：13663282253')"><div class="lib-ic li1">📿</div><div class="lib-cnt"><div class="lib-title">手链尺寸测量完全教程</div><div class="lib-desc">如何测量手围选择合适的手链尺寸，不同款式的尺寸差异说明...</div><div class="lib-meta">📖 约3分钟 · 购买指南</div></div></div>
+      <div class="lib-card" onclick="tip('完整内容请微信咨询：13663282253')"><div class="lib-ic li2">💰</div><div class="lib-cnt"><div class="lib-title">批发代理合作说明</div><div class="lib-desc">代理合作要求、折扣体系、发货政策详细说明，欢迎零售商合作...</div><div class="lib-meta">📖 约6分钟 · 合作指南</div></div></div>
+      <div class="lib-card" onclick="tip('完整内容请微信咨询：13663282253')"><div class="lib-ic li3">🎁</div><div class="lib-cnt"><div class="lib-title">水晶礼品选购指南</div><div class="lib-desc">送礼场景推荐款式，包装方案介绍，让每一份礼物都充满心意...</div><div class="lib-meta">📖 约5分钟 · 选购攻略</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 联系页 ===== -->
+<div class="page" id="page-contact">
+  <div style="margin-top:2px;">
+    <div class="contact-hero">
+      <div class="ch-title">📞 联系我们</div>
+      <div class="ch-btns">
+        <div class="ch-btn" onclick="contactUs()"><div class="ch-ic">💬</div><div>微信咨询</div></div>
+        <div class="ch-btn" onclick="callPhone()"><div class="ch-ic">📞</div><div>拨打电话</div></div>
+        <div class="ch-btn" onclick="openCargo()"><div class="ch-ic">📦</div><div>拿货说明</div></div>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="ic-title">联系信息</div>
+      <div class="ic-row"><div class="ic-em">💬</div><div><div class="ic-label">微信/电话</div><div class="ic-val" id="cWechat">13663282253</div></div></div>
+      <div class="ic-row"><div class="ic-em">📮</div><div><div class="ic-label">QQ</div><div class="ic-val" id="cQq">907029936</div></div></div>
+      <div class="ic-row"><div class="ic-em">⏰</div><div><div class="ic-label">营业时间</div><div class="ic-val" id="cHours">9:00–22:00</div></div></div>
+      <div class="ic-row"><div class="ic-em">📍</div><div><div class="ic-label">地址</div><div class="ic-val" id="cAddr">江苏省连云港市东海县 · 产地直供</div></div></div>
+    </div>
+    <div class="info-card">
+      <div class="ic-title">拿货说明</div>
+      <div style="font-size:13px;color:#555;line-height:2;">
+        💰 <b>零售：</b>1件起，批发10件起享8折<br>
+        💳 <b>付款：</b>微信/支付宝/银行转账<br>
+        🚚 <b>发货：</b>48小时内顺丰，满299包邮<br>
+        🔄 <b>售后：</b>7天无理由退换，假一赔十
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bot-nav">
+  <div class="bn on" id="bn-home" onclick="switchNav('home')"><span class="bn-ic">🏠</span>首页</div>
+  <div class="bn" id="bn-goods" onclick="switchNav('goods')"><span class="bn-ic">🛍️</span>商品</div>
+  <div class="bn" id="bn-video" onclick="switchNav('video')"><span class="bn-ic">🎬</span>视频</div>
+  <div class="bn" id="bn-library" onclick="switchNav('library')"><span class="bn-ic">📚</span>文库</div>
+  <div class="bn" id="bn-contact" onclick="switchNav('contact')"><span class="bn-ic">📞</span>联系<div class="bn-dot" id="orderDot"></div></div>
+</div>
+
+<!-- CARGO MODAL -->
+<div class="mask" id="cargoMask" onclick="closeCargo()"></div>
+<div class="panel" id="cargoPanel">
+  <div class="panel-hd"><h3>📦 拿货说明</h3><button class="panel-close" onclick="closeCargo()">✕</button></div>
+  <div class="panel-body">
+    <div class="cargo-item"><div class="cargo-ic">💰</div><div class="cargo-content"><h4>起订要求</h4><p>零售：1件起，无最低要求<br>批发：10件起享8折<br>代理：50件起享6.5折</p></div></div>
+    <div class="cargo-item"><div class="cargo-ic">💳</div><div class="cargo-content"><h4>付款方式</h4><p>微信/支付宝/银行转账<br>批发客户可月结</p></div></div>
+    <div class="cargo-item"><div class="cargo-ic">🚚</div><div class="cargo-content"><h4>发货说明</h4><p>付款后48小时内顺丰发出<br>满299元包邮（偏远除外）</p></div></div>
+    <div class="cargo-item"><div class="cargo-ic">🔄</div><div class="cargo-content"><h4>售后保障</h4><p>7天无理由退换货<br>一物一证书，假一赔十</p></div></div>
+    <div class="cargo-item"><div class="cargo-ic">📞</div><div class="cargo-content"><h4>联系拿货</h4><p id="cargoContact">微信/电话：13663282253<br>QQ：907029936<br>营业：9:00–22:00</p></div></div>
+    <div class="cargo-tip">💡 批发代理欢迎直接加微信详谈，可安排产地实地考察！</div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="mask" id="detailMask" onclick="closeDetail()"></div>
+<div class="panel" id="detailPanel">
+  <div class="detail-img" id="detailImg"><button class="d-close" onclick="closeDetail()">✕</button></div>
+  <div class="detail-body">
+    <div class="d-price-row"><span class="d-price" id="dPrice">0</span><span class="d-ori" id="dOri"></span><span class="d-sold" id="dSold"></span></div>
+    <div class="d-name" id="dName"></div>
+    <div class="d-spec" id="dSpec"></div>
+    <div id="specSection"></div>
+    <div class="d-desc-box"><div class="d-desc-title">📋 商品详情</div><div class="d-desc-txt" id="dDesc"></div></div>
+    <div class="d-actions">
+      <button class="d-btn d-wechat" onclick="contactUs()">💬 微信咨询</button>
+      <button class="d-btn d-order" id="dOrderBtn">🛒 我要咨询</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== DATA =====
+const SHOP_KEY='shop_WH001';
+const ORDER_KEY='wh_orders_WH001';
+
+const DEF_GOODS=[
+  {id:1,icon:'💜',bg:'gi1',name:'东海水晶天然紫水晶原石吊坠',cat:'💜 水晶吊坠系列',price:'9.8',ori:'',sold:'1200+',spec:'颜色：天然紫水晶原石吊坠',isNew:true,isHot:false,img:'',
+   specs:[{name:'款式',opts:['天然紫水晶原石吊坠','白水晶原石吊坠']}],
+   desc:'东海县产地直供天然紫水晶原石，每颗独一无二，附一物一证书。\n\n✅ 产地：江苏连云港东海县\n✅ 材质：天然紫水晶\n✅ 附件：一物一证书\n✅ 发货：48小时内顺丰发出'},
+  {id:2,icon:'🔴',bg:'gi7',name:'东海水晶天然紫牙乌石榴石三圈手串',cat:'🔴 石榴石手链',price:'51.8',ori:'',sold:'680+',spec:'颜色：4mm 19.5g左右',isNew:false,isHot:true,img:'',
+   specs:[{name:'尺寸',opts:['3mm','4mm','5mm']},{name:'重量',opts:['约19.5g','约22g','约25g']}],
+   desc:'天然紫牙乌石榴石，深红色泽，三圈缠绕佩戴，颜色饱满均匀，一物一证书保真。\n\n✅ 材质：天然紫牙乌石榴石\n✅ 工艺：三圈绕腕设计'},
+  {id:3,icon:'🟤',bg:'gi4',name:'东海水晶天然茶水晶手链天然小巧女生款',cat:'🟤 茶水晶手链',price:'60.4',ori:'',sold:'420+',spec:'颜色：小巧女生款 单珠直径6mm',isNew:false,isHot:false,img:'',
+   specs:[{name:'单珠直径',opts:['6mm','8mm','10mm']},{name:'手围',opts:['15cm','16cm','17cm','18cm']}],
+   desc:'天然茶水晶手链，烟棕色通透，小巧精致适合女生日常佩戴，一物一证书保真。'},
+  {id:4,icon:'🟤',bg:'gi4',name:'东海水晶天然茶水晶手链女款大颗粒',cat:'🟤 茶水晶手链',price:'78.9',ori:'',sold:'380+',spec:'颜色：单珠直径8.5mm',isNew:false,isHot:true,img:'',
+   specs:[{name:'单珠直径',opts:['8mm','8.5mm','10mm','12mm']},{name:'手围',opts:['16cm','17cm','18cm','19cm']}],
+   desc:'大颗粒天然茶水晶手链，晶体饱满通透，颜色深邃，大气高档，一物一证书。'},
+  {id:5,icon:'⚫',bg:'gi5',name:'东海水晶天然乌金黑曜石手链守护之石',cat:'⚫ 黑曜石手链',price:'28.9',ori:'',sold:'890+',spec:'颜色：小巧女生款 6+mm',isNew:false,isHot:true,img:'',
+   specs:[{name:'单珠直径',opts:['6mm','8mm','10mm','12mm']},{name:'手围',opts:['15cm','16cm','17cm','18cm','19cm']}],
+   desc:'天然黑曜石手链，乌金色泽，深邃典雅，寓意辟邪护身守护之石。'},
+  {id:6,icon:'🌸',bg:'gi6',name:'天然粉晶手镯冰透芙蓉石时尚款',cat:'💎 水晶系列',price:'43',ori:'',sold:'290+',spec:'颜色：冰透粉晶 内径可选',isNew:true,isHot:false,img:'',
+   specs:[{name:'内径',opts:['54mm','56mm','58mm','60mm']},{name:'款式',opts:['圆条款','扁条款']}],
+   desc:'天然芙蓉石粉晶手镯，冰透通灵，粉色均匀，招桃花旺感情，送礼佳品。'},
+  {id:7,icon:'💕',bg:'gi2',name:'天然粉晶手链芙蓉石精美礼盒装',cat:'💎 水晶系列',price:'89',ori:'',sold:'560+',spec:'颜色：6mm/8mm 多色可选',isNew:false,isHot:false,img:'',
+   specs:[{name:'尺寸',opts:['6mm','8mm','10mm']},{name:'手围',opts:['16cm','17cm','18cm']}],
+   desc:'天然芙蓉石粉晶手链，精美礼盒包装，色泽水润均匀，送女友送妈妈必选款。'},
+  {id:8,icon:'💚',bg:'gi8',name:'绿幽灵水晶球招财摆件天然正品',cat:'💎 水晶系列',price:'368',ori:'',sold:'120+',spec:'直径：6cm/7cm/8cm可选',isNew:false,isHot:false,img:'',
+   specs:[{name:'直径',opts:['6cm','7cm','8cm']},{name:'底座',opts:['无底座','木质底座','水晶底座']}],
+   desc:'天然绿幽灵水晶球，内含火山灰包体，绿色层叠丰富，招财纳福风水摆件。'},
+];
+const HERO_CAPS=['东海水晶 · 产地直供','天然水晶 · 一物一证书','紫水晶系列 · 新品上市','批发代理 · 欢迎合作'];
+
+let shopData={},allGoods=[...DEF_GOODS],orders=[],curCat='new';
+let heroCur=0,heroTotal=4,heroTimer;
+
+// ===== INIT =====
+function init(){
+  loadShop();
+  loadOrders();
+  renderGoods(curCat);
+  renderGoods2();
+  renderOrders('all');
+  startHero();
+  initHeroTouch();
+}
+
+function loadShop(){
+  try{shopData=JSON.parse(localStorage.getItem(SHOP_KEY)||'{}');}catch(e){shopData={};}
+  if(shopData.name){document.getElementById('topName').textContent=shopData.name;}
+  if(shopData.sub){document.getElementById('topSub').textContent=shopData.sub;}
+  if(shopData.logo){
+    const el=document.getElementById('topLogo');
+    el.innerHTML=shopData.logo.startsWith('data:')?'<img src="'+shopData.logo+'">':shopData.logo;
+  }
+  if(shopData.notice){document.getElementById('tickerTxt').textContent=shopData.notice.replace(/\n/g,' · ');}
+  if(shopData.intro){document.getElementById('introTxt').textContent=shopData.intro;}
+  if(shopData.tags&&shopData.tags.length){
+    document.getElementById('tagsBar').innerHTML=shopData.tags.map(t=>'<span class="stag">'+t+'</span>').join('');
+  }
+  if(shopData.contact){
+    const c=shopData.contact;
+    if(c.wechat)document.getElementById('cWechat').textContent=c.wechat;
+    if(c.qq)document.getElementById('cQq').textContent=c.qq;
+    if(c.hours)document.getElementById('cHours').textContent=c.hours;
+    if(c.addr)document.getElementById('cAddr').textContent=c.addr;
+    const w=c.wechat||'13663282253',q=c.qq||'907029936',h=c.hours||'9:00–22:00';
+    document.getElementById('cargoContact').innerHTML='微信/电话：'+w+'<br>QQ：'+q+'<br>营业：'+h;
+  }
+  // Slides
+  if(shopData.slides&&shopData.slides.some(s=>s)){
+    const valid=shopData.slides.filter(s=>s);
+    heroTotal=valid.length;
+    document.getElementById('heroTrack').innerHTML=valid.map(src=>'<div class="hero-slide"><img src="'+src+'"></div>').join('');
+    document.getElementById('heroDots').innerHTML=valid.map((_,i)=>'<div class="hdot'+(i===0?' on':'')+'"></div>').join('');
+  }
+  // Cats
+  const cats=shopData.cats||['💜 水晶吊坠系列','🔴 石榴石手链','🟤 茶水晶手链','⚫ 黑曜石手链','💎 水晶系列','🔴 玛瑙系列','🟠 朱砂系列'];
+  buildCatTabs(cats);
+  // Admin goods
+  if(shopData.goods&&shopData.goods.length){
+    const ag=shopData.goods.filter(g=>g.on).map(g=>({id:g.id,icon:'💎',bg:'gi1',name:g.name,cat:g.cat,price:g.price,sold:'0+',spec:g.spec||'',isNew:false,isHot:false,img:g.img||'',desc:g.desc||'天然水晶，产地直供，一物一证书。',specs:[{name:'规格',opts:[g.spec||'默认规格']}]}));
+    allGoods=[...ag,...DEF_GOODS];
+  }
+}
+
+function buildCatTabs(cats){
+  const tabs1=document.getElementById('catTabs');
+  tabs1.innerHTML='<div class="ctab on" onclick="switchCat(this,\'new\')">✨ 新品推荐</div>'
+    +'<div class="ctab" onclick="switchCat(this,\'all\')">📦 全部商品</div>'
+    +cats.map(c=>'<div class="ctab" onclick="switchCat(this,\'cat:'+c+'\')">' +c+'</div>').join('')
+    +'<div class="ctab" onclick="toggleCatPanel(this)">🗂 更多 ▾</div>';
+  document.getElementById('catTabs2').innerHTML='<div class="ctab on" onclick="switchCat2(this,\'all\')">📦 全部</div>'
+    +cats.map(c=>'<div class="ctab" onclick="switchCat2(this,\''+c+'\')">' +c+'</div>').join('');
+  document.getElementById('catsList').innerHTML=cats.map(c=>'<div class="cat-row" onclick="pickCat(\''+c+'\')">' +c+'</div>').join('');
+}
+
+// ===== GOODS =====
+function renderGoods(filter){
+  const grid=document.getElementById('goodsGrid');
+  if(!grid)return;
+  const q=(document.getElementById('searchInp')||{}).value||'';
+  let goods=[...allGoods];
+  if(q)goods=goods.filter(g=>g.name.toLowerCase().includes(q.toLowerCase()));
+  if(filter==='new')goods=goods.filter(g=>g.isNew);
+  else if(filter&&filter.startsWith('cat:'))goods=goods.filter(g=>g.cat===filter.slice(4));
+  grid.innerHTML=goods.map((g,i)=>goodCard(g,i)).join('');
+}
+function renderGoods2(filter){
+  const grid=document.getElementById('goodsGrid2');
+  if(!grid)return;
+  const q=(document.getElementById('searchInp2')||{}).value||'';
+  let goods=[...allGoods];
+  if(q)goods=goods.filter(g=>g.name.toLowerCase().includes(q.toLowerCase()));
+  if(filter&&filter!=='all')goods=goods.filter(g=>g.cat===filter);
+  grid.innerHTML=goods.map((g,i)=>goodCard(g,i)).join('');
+}
+function goodCard(g,i){
+  const img=g.img?'<img src="'+g.img+'" alt="'+g.name+'">':g.icon;
+  const badge=g.isNew?'<span class="g-badge b-new">新品</span>':g.isHot?'<span class="g-badge b-hot">热卖</span>':'';
+  return '<div class="good-card" onclick="openDetail('+i+')">' 
+    +'<div class="good-img '+g.bg+'">'+badge+img+'</div>'
+    +'<div class="good-info">'
+    +'<div class="good-name">'+g.name+'</div>'
+    +'<div class="good-spec">'+g.spec+'</div>'
+    +'<div class="good-bot"><span class="good-price">'+g.price+'</span>'
+    +'<button class="ask-btn" onclick="event.stopPropagation();addOrder(event,\''+g.name+'\',\''+g.icon+'\',\''+g.price+'\')">咨询</button>'
+    +'</div></div></div>';
+}
+function filterGoods(){renderGoods(curCat);}
+function filterGoods2(){renderGoods2();}
+function switchCat(el,f){
+  document.querySelectorAll('#catTabs .ctab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('catsPanel').classList.remove('show');
+  curCat=f;renderGoods(f==='new'?'new':f.startsWith('cat:')?f:undefined);
+}
+function switchCat2(el,f){
+  document.querySelectorAll('#catTabs2 .ctab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');renderGoods2(f==='all'?null:f);
+}
+function toggleCatPanel(){document.getElementById('catsPanel').classList.toggle('show');}
+function pickCat(cat){document.getElementById('catsPanel').classList.remove('show');curCat='cat:'+cat;renderGoods('cat:'+cat);}
+
+// ===== HERO =====
+function heroGoTo(n){
+  heroCur=(n+heroTotal)%heroTotal;
+  document.getElementById('heroTrack').style.transform='translateX(-'+heroCur*100+'%)';
+  document.querySelectorAll('.hdot').forEach((d,i)=>d.className='hdot'+(i===heroCur?' on':''));
+  const cap=document.getElementById('heroCap');
+  if(cap&&HERO_CAPS[heroCur])cap.textContent=HERO_CAPS[heroCur];
+}
+function startHero(){heroTimer=setInterval(()=>heroGoTo(heroCur+1),3500);}
+function stopHero(){clearInterval(heroTimer);}
+function initHeroTouch(){
+  const track=document.getElementById('heroTrack');
+  if(!track)return;
+  let sx=0;
+  track.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;stopHero();});
+  track.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>40)heroGoTo(heroCur+(dx<0?1:-1));startHero();});
+}
+
+// ===== NAV =====
+function switchNav(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('bn-'+page).classList.add('on');
+  window.scrollTo(0,0);
+}
+
+// ===== MODALS =====
+function openCargo(){document.getElementById('cargoMask').classList.add('show');document.getElementById('cargoPanel').classList.add('show');document.body.style.overflow='hidden';}
+function closeCargo(){document.getElementById('cargoMask').classList.remove('show');document.getElementById('cargoPanel').classList.remove('show');document.body.style.overflow='';}
+function openDetail(idx){
+  const g=allGoods[idx];if(!g)return;
+  const imgEl=document.getElementById('detailImg');
+  if(g.img){imgEl.innerHTML='<button class="d-close" onclick="closeDetail()">✕</button><img src="'+g.img+'" style="width:100%;height:100%;object-fit:cover;">';imgEl.className='detail-img';}
+  else{imgEl.className='detail-img '+g.bg;imgEl.innerHTML='<button class="d-close" onclick="closeDetail()">✕</button>'+g.icon;}
+  document.getElementById('dPrice').textContent=g.price;
+  document.getElementById('dOri').textContent=g.ori||'';
+  document.getElementById('dSold').textContent='已售'+(g.sold||'0+')+'件';
+  document.getElementById('dName').textContent=g.name;
+  document.getElementById('dSpec').textContent=g.spec;
+  document.getElementById('specSection').innerHTML=(g.specs||[]).map(s=>
+    '<div class="spec-sec"><div class="spec-title">选择'+s.name+'</div>'
+    +'<div class="spec-opts">'+s.opts.map((o,i)=>'<div class="spec-opt'+(i===0?' on':'')+' " onclick="selSpec(this)">'+o+'</div>').join('')+'</div></div>'
+  ).join('');
+  document.getElementById('dDesc').innerHTML=(g.desc||'').replace(/\n/g,'<br>');
+  document.getElementById('dOrderBtn').onclick=()=>{addOrder(null,g.name,g.icon,g.price);closeDetail();};
+  document.getElementById('detailMask').classList.add('show');
+  document.getElementById('detailPanel').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeDetail(){document.getElementById('detailMask').classList.remove('show');document.getElementById('detailPanel').classList.remove('show');document.body.style.overflow='';}
+function selSpec(el){el.closest('.spec-opts').querySelectorAll('.spec-opt').forEach(o=>o.classList.remove('on'));el.classList.add('on');}
+
+// ===== ORDERS =====
+function loadOrders(){
+  try{orders=JSON.parse(localStorage.getItem(ORDER_KEY)||'[]');if(!orders.length)orders=JSON.parse(localStorage.getItem('wh_orders')||'[]');}catch(e){orders=[];}
+  if(orders.length)document.getElementById('orderDot').classList.add('show');
+}
+function saveOrders(){localStorage.setItem(ORDER_KEY,JSON.stringify(orders));localStorage.setItem('wh_orders',JSON.stringify(orders));}
+function addOrder(e,name,icon,price){
+  if(e)e.stopPropagation();
+  orders.unshift({id:Date.now(),name,icon,price,time:new Date().toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),status:'wait'});
+  saveOrders();renderOrders('all');
+  document.getElementById('orderDot').classList.add('show');
+  tip('✅ 已记录！店主将尽快联系您');
+}
+function renderOrders(filter){
+  const list=document.getElementById('orderList');if(!list)return;
+  const arr=filter==='all'?orders:orders.filter(o=>o.status===filter);
+  if(!arr.length){list.innerHTML='<div class="o-empty"><div style="font-size:32px;margin-bottom:8px;">🛒</div>暂无记录<br><span style="font-size:11px;color:#bbb;">点击商品"咨询"即可记录</span></div>';return;}
+  list.innerHTML=arr.map(o=>'<div class="o-item"><div class="o-thumb">'+o.icon+'</div><div class="o-detail"><div class="o-name">'+o.name+'</div><div class="o-time">'+o.time+'</div></div><div class="o-right"><div class="o-price">¥'+o.price+'</div><div class="o-status '+(o.status==='wait'?'st-wait':'st-done')+'">'+( o.status==='wait'?'待回复':'已完成')+'</div></div></div>').join('');
+}
+function clearOrders(){if(!orders.length){tip('暂无记录');return;}orders=[];saveOrders();renderOrders('all');document.getElementById('orderDot').classList.remove('show');tip('已清空');}
+function switchOtab(el,f){document.querySelectorAll('.otab').forEach(t=>t.classList.remove('on'));el.classList.add('on');renderOrders(f);}
+
+// ===== CONTACT =====
+function contactUs(){const c=shopData.contact||{};tip('微信/电话：'+(c.wechat||'13663282253')+'\nQQ：'+(c.qq||'907029936')+'\n请添加微信咨询');}
+function callPhone(){const c=shopData.contact||{};window.location.href='tel:'+(c.phone||c.wechat||'13663282253');}
+function doShare(){if(navigator.share){navigator.share({title:document.title,url:location.href});}else{tip('📋 分享链接：\n'+location.href);}}
+function tip(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2400);}
+
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
