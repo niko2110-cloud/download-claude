@@ -140,6 +140,7 @@
     <input id="contactPhone" type="tel" maxlength="20">
 
     <label>店内照片 <span class="optional-hint">（选填，有实体店的可以上传最多4张照片做轮播装修，没有可不传）</span></label>
+    <div class="img-hint">建议横版照片（手机横着拍），尺寸建议 1200×900 左右（4:3），竖版照片在轮播里会被裁切两边</div>
     <div class="photo-list" id="shopPhotoList"></div>
     <input type="file" id="shopPhotoInput" accept="image/*" style="display:none" onchange="uploadShopPhoto(event)">
 
@@ -310,13 +311,17 @@ function renderStatusBar(access){
   bar.innerHTML = `<div class="status-bar ${cls}">${texts[access.phase] || ''}${showCloseBtn ? '<button class="close-account" onclick="closeAccount()">注销店铺</button>' : ''}</div>`;
 }
 
-// ---- 店内照片 ----
+// ---- 店内照片（固定显示4个位，已传显示图，未传显示+）----
 function renderShopPhotos(){
   const list = document.getElementById('shopPhotoList');
-  const imgs = currentShopPhotos.map((url,i) => `
-    <div class="photo-item"><img src="${url}"><button class="del" onclick="removeShopPhoto(${i})">×</button></div>
-  `).join('');
-  list.innerHTML = imgs + (currentShopPhotos.length < 4 ? '<div class="photo-add" onclick="document.getElementById(\'shopPhotoInput\').click()">+</div>' : '');
+  let html = '';
+  for(let i=0;i<4;i++){
+    const url = currentShopPhotos[i];
+    html += url
+      ? `<div class="photo-item"><img src="${url}"><button class="del" onclick="removeShopPhoto(${i})">×</button></div>`
+      : `<div class="photo-add" onclick="document.getElementById('shopPhotoInput').click()">+</div>`;
+  }
+  list.innerHTML = html;
 }
 function removeShopPhoto(i){ currentShopPhotos.splice(i,1); renderShopPhotos(); }
 
@@ -347,13 +352,15 @@ function renderRenewal(access){
   const formEl = document.getElementById('renewalForm');
   if(!renewalInfo){ statusEl.innerHTML=''; formEl.innerHTML=''; return; }
 
+  const expireLine = `<div class="img-hint" style="font-size:13px;margin-bottom:10px;">当前到期日期：<b style="color:var(--primary-dark);">${access && access.expiresAt ? fmtDate(access.expiresAt) : '——'}</b></div>`;
+
   if(renewalInfo.pending){
     const p = renewalInfo.pending;
-    statusEl.innerHTML = `<div class="renewal-pending">续费申请审核中：${escapeHtml(p.label)}，¥${p.amount}，提交于 ${fmtDate(p.createdAt)}。审核通过后会自动延长到期日，请耐心等待。</div>`;
+    statusEl.innerHTML = expireLine + `<div class="renewal-pending">续费申请审核中：${escapeHtml(p.label)}，¥${p.amount}，提交于 ${fmtDate(p.createdAt)}。审核通过后会自动延长到期日，请耐心等待。</div>`;
     formEl.innerHTML = '';
     return;
   }
-  statusEl.innerHTML = '';
+  statusEl.innerHTML = expireLine;
 
   currentPlans = [];
   if(renewalInfo.firstMonthEligible){
