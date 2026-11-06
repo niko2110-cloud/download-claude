@@ -33,9 +33,13 @@
   .card .name{font-size:13.5px;font-weight:600;margin:0 0 4px;line-height:1.3;}
   .card .price{font-size:14px;color:var(--price);font-weight:700;}
   .empty{text-align:center;color:var(--muted);padding:60px 20px;font-size:14px;}
+  .share-btn{position:fixed;right:14px;top:14px;z-index:20;background:rgba(0,0,0,.45);color:#fff;border:none;border-radius:20px;padding:8px 14px;font-size:12.5px;display:flex;align-items:center;gap:4px;cursor:pointer;}
+  .share-toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:rgba(0,0,0,.75);color:#fff;font-size:13px;padding:9px 18px;border-radius:20px;z-index:50;display:none;}
 </style>
 </head>
 <body>
+<button class="share-btn" onclick="shareShop()">📤 分享店铺</button>
+<div class="share-toast" id="shareToast"></div>
 <div id="bannerWrap"></div>
 <div id="shopHead"></div>
 <div id="tabsWrap"></div>
@@ -55,6 +59,31 @@ function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+let shopNameForShare = '店铺';
+
+function showToast(msg){
+  const t = document.getElementById('shareToast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 2200);
+}
+
+async function shareShop(){
+  const url = location.href;
+  const title = shopNameForShare + ' - 校服之家';
+  const text = '我在"' + shopNameForShare + '"上架了校服，点进来看看吧';
+  if(navigator.share){
+    try{ await navigator.share({ title, text, url }); return; }catch(e){ /* 用户取消或不支持，走下面复制兜底 */ }
+  }
+  try{
+    await navigator.clipboard.writeText(url);
+    showToast('链接已复制，发到微信群/朋友圈即可');
+  }catch(e){
+    showToast(url);
+  }
+}
+
 async function load(){
   if(!shopId){ document.getElementById('emptyTip').style.display='block'; return; }
   try{
@@ -62,6 +91,7 @@ async function load(){
     const d = await r.json();
     if(!d.ok){ document.getElementById('emptyTip').style.display='block'; document.getElementById('emptyTip').textContent = d.msg || '店铺不存在或已下线'; return; }
     document.title = d.shop.shopName + ' - 校服之家';
+    shopNameForShare = d.shop.shopName || '店铺';
 
     document.getElementById('bannerWrap').innerHTML = d.shop.banner
       ? `<div class="banner" style="background-image:url('${d.shop.banner}')"></div>`

@@ -10,7 +10,9 @@
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);padding-bottom:84px;}
   .topbar{background:#fff;border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
   .back{color:var(--muted);text-decoration:none;font-size:20px;line-height:1;}
-  .topbar h1{font-size:15px;margin:0;font-weight:600;}
+  .topbar h1{font-size:15px;margin:0;font-weight:600;flex:1;}
+  .share-link{color:var(--primary);text-decoration:none;font-size:12.5px;white-space:nowrap;display:flex;align-items:center;gap:3px;}
+  .share-toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:rgba(0,0,0,.75);color:#fff;font-size:13px;padding:9px 18px;border-radius:20px;z-index:50;display:none;max-width:85vw;text-align:center;}
 
   .gallery{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;background:#f1ece6;}
   .gallery img{width:100%;aspect-ratio:1/1;object-fit:cover;flex-shrink:0;scroll-snap-align:start;}
@@ -61,9 +63,11 @@
 <div class="topbar">
   <a class="back" href="javascript:history.back()">←</a>
   <h1>商品详情</h1>
+  <a class="share-link" href="javascript:void(0)" onclick="shareProduct()">📤 分享</a>
 </div>
 
 <div id="content"></div>
+<div class="share-toast" id="shareToast"></div>
 
 <script>
 const params = new URLSearchParams(location.search);
@@ -72,6 +76,33 @@ const id = params.get('id');
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+let productForShare = null;
+
+function showToast(msg){
+  const t = document.getElementById('shareToast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 2200);
+}
+
+async function shareProduct(){
+  const url = location.href;
+  const name = productForShare ? productForShare.name : '这件校服';
+  const price = productForShare && productForShare.price ? ('¥' + productForShare.price) : '';
+  const title = name + ' - 校服之家';
+  const text = name + (price ? '（' + price + '）' : '') + '，点进来看看';
+  if(navigator.share){
+    try{ await navigator.share({ title, text, url }); return; }catch(e){ /* 取消或不支持，走复制兜底 */ }
+  }
+  try{
+    await navigator.clipboard.writeText(url);
+    showToast('链接已复制，发到微信群/朋友圈即可');
+  }catch(e){
+    showToast(url);
+  }
 }
 
 async function load(){
@@ -92,6 +123,7 @@ async function load(){
 
 function render(p){
   document.title = p.name + ' - 校服之家';
+  productForShare = p;
   const content = document.getElementById('content');
   const imgs = (p.images && p.images.length) ? p.images : [];
   const gallery = imgs.length
