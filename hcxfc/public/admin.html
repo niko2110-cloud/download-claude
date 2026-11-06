@@ -36,6 +36,16 @@
   .actions-cell{display:flex;flex-wrap:wrap;gap:4px;}
   table{display:block;overflow-x:auto;white-space:nowrap;}
   td,th{white-space:nowrap;}
+  .card + .card{margin-top:16px;}
+  .renewal-item{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);}
+  .renewal-item:last-child{border-bottom:none;}
+  .renewal-item .shot{width:60px;height:60px;border-radius:8px;background:#f1ece6 center/cover no-repeat;flex-shrink:0;cursor:pointer;}
+  .renewal-item .body{flex:1;min-width:0;font-size:12.5px;line-height:1.6;}
+  .renewal-item .body .t{font-weight:600;font-size:13.5px;}
+  .renewal-item .actions{flex-shrink:0;display:flex;flex-direction:column;gap:6px;}
+  .shot-lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:40;align-items:center;justify-content:center;padding:20px;}
+  .shot-lightbox.show{display:flex;}
+  .shot-lightbox img{max-width:100%;max-height:100%;border-radius:8px;}
 </style>
 </head>
 <body>
@@ -48,6 +58,12 @@
   <div class="stat-grid" id="statGrid"></div>
 
   <div class="card">
+    <h2>续费审核</h2>
+    <div id="renewalReqList"></div>
+    <div id="renewalEmptyTip" class="empty" style="display:none;">暂无待审核的续费申请</div>
+  </div>
+
+  <div class="card">
     <h2>商家列表</h2>
     <table>
       <thead>
@@ -57,6 +73,10 @@
     </table>
     <div id="emptyTip" class="empty" style="display:none;">还没有商家入驻</div>
   </div>
+</div>
+
+<div class="shot-lightbox" id="shotLightbox" onclick="document.getElementById('shotLightbox').classList.remove('show')">
+  <img id="shotLightboxImg" src="">
 </div>
 
 <script>
@@ -110,7 +130,7 @@ async function loadMerchants(){
       <td>${escapeHtml(m.phone)}</td>
       <td>${m.productCount}</td>
       <td>${m.status === 'banned' ? '<span class="badge badge-banned">已封禁</span>' : '<span class="badge badge-active">正常</span>'}</td>
-      <td>${phaseBadge(m.access)}</td>
+      <td>${phaseBadge(m.access)}${m.pendingRenewal ? ' <span class="badge badge-paid">续费待审核</span>' : ''}</td>
       <td class="actions-cell">
         <button class="btn-sm" onclick="toggleStatus(${m.id}, '${m.status}')">${m.status === 'banned' ? '解封' : '封禁'}</button>
         <button class="btn-sm" onclick="markPaid(${m.id})">标记已付20元试用</button>
@@ -172,8 +192,69 @@ async function toggleStatus(id, currentStatus){
   else alert(d.msg || '操作失败');
 }
 
+function fmtDate(ts){
+  if(!ts) return '';
+  const d = new Date(ts);
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+}
+function fmtTime(ts){
+  if(!ts) return '';
+  const d = new Date(ts);
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getMonth()+1}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+async function loadRenewalRequests(){
+  const r = await apiFetch('/api/admin/renewal-requests', {headers: authHeaders()});
+  const d = await r.json();
+  if(!d.ok) return;
+  const list = document.getElementById('renewalReqList');
+  if(!d.requests.length){
+    document.getElementById('renewalEmptyTip').style.display = 'block';
+    list.innerHTML = '';
+    return;
+  }
+  document.getElementById('renewalEmptyTip').style.display = 'none';
+  list.innerHTML = d.requests.map(x => `
+    <div class="renewal-item">
+      <div class="shot" style="${x.request.screenshot ? `background-image:url('${x.request.screenshot}')` : ''}" onclick="viewShot('${x.request.screenshot}')"></div>
+      <div class="body">
+        <div class="t">${escapeHtml(x.shopName)}（${escapeHtml(x.phone)}）</div>
+        <div>申请：${escapeHtml(x.request.label)}，¥${x.request.amount}</div>
+        <div>当前到期：${x.access.expiresAt ? fmtDate(x.access.expiresAt) : '无'}</div>
+        <div>提交时间：${fmtTime(x.request.createdAt)}</div>
+      </div>
+      <div class="actions">
+        <button class="btn-sm" onclick="approveRenewal(${x.merchantId}, '${x.request.id}')">通过</button>
+        <button class="btn-sm btn-danger-sm" onclick="rejectRenewal(${x.merchantId}, '${x.request.id}')">拒绝</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function viewShot(url){
+  if(!url) return;
+  document.getElementById('shotLightboxImg').src = url;
+  document.getElementById('shotLightbox').classList.add('show');
+}
+
+async function approveRenewal(merchantId, requestId){
+  if(!confirm('确认该商家已转账到账？通过后将自动延长店铺到期日。')) return;
+  const r = await apiFetch('/api/admin/merchants/' + merchantId + '/approve-renewal', {method:'PUT', headers: authHeaders(true), body: JSON.stringify({requestId})});
+  const d = await r.json();
+  if(d.ok){ loadRenewalRequests(); loadMerchants(); } else alert(d.msg || '操作失败');
+}
+
+async function rejectRenewal(merchantId, requestId){
+  if(!confirm('确认拒绝这条续费申请？')) return;
+  const r = await apiFetch('/api/admin/merchants/' + merchantId + '/reject-renewal', {method:'PUT', headers: authHeaders(true), body: JSON.stringify({requestId})});
+  const d = await r.json();
+  if(d.ok){ loadRenewalRequests(); } else alert(d.msg || '操作失败');
+}
+
 loadStats();
 loadMerchants();
+loadRenewalRequests();
 </script>
 </body>
 </html>

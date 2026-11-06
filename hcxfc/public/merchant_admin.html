@@ -89,6 +89,21 @@
   .shot-lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:40;align-items:center;justify-content:center;padding:20px;}
   .shot-lightbox.show{display:flex;}
   .shot-lightbox img{max-width:100%;max-height:100%;border-radius:8px;}
+
+  .optional-hint{color:#9ca3af;font-weight:400;}
+  .photo-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+  .photo-item{position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;background:#f1ece6;}
+  .photo-item img{width:100%;height:100%;object-fit:cover;display:block;}
+  .photo-item .del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;line-height:1;cursor:pointer;}
+  .photo-add{width:80px;height:80px;border:1px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:24px;cursor:pointer;flex-shrink:0;}
+
+  .plan-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px;}
+  .plan-chip{border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;cursor:pointer;}
+  .plan-chip.active{border-color:var(--primary);background:var(--primary-tint);}
+  .plan-chip .t{font-size:12.5px;color:var(--text);font-weight:600;}
+  .plan-chip .p{font-size:15px;color:var(--price);font-weight:700;margin-top:2px;}
+  .renewal-pending{background:#f3e3d6;color:var(--primary-dark);border-radius:8px;padding:10px 12px;font-size:12.5px;line-height:1.6;}
+  .shot-upload-sm{width:100px;height:100px;border-radius:8px;border:1px dashed var(--border);background:#f1ece6 center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;cursor:pointer;margin-top:8px;}
 </style>
 </head>
 <body>
@@ -116,18 +131,28 @@
     <label>店铺简介</label>
     <textarea id="intro" maxlength="300" placeholder="一句话介绍你的店铺，比如经营多少年、主营哪些学校的校服"></textarea>
 
-    <label>店铺地址（方便家长到店取货/核实）</label>
-    <input id="address" type="text" maxlength="120" placeholder="例如：衡水市桃城区XX路XX号">
+    <label>店铺地址 <span class="optional-hint">（选填，不填则店铺页不显示地址这一行，没有实体店可以不填）</span></label>
+    <input id="address" type="text" maxlength="120" placeholder="例如：衡水市桃城区XX路XX号（没有实体店可留空）">
 
     <label>微信号（买家联系用）</label>
     <input id="contactWechat" type="text" maxlength="60">
     <label>联系电话</label>
     <input id="contactPhone" type="tel" maxlength="20">
 
+    <label>店内照片 <span class="optional-hint">（选填，有实体店的可以上传最多4张照片做轮播装修，没有可不传）</span></label>
+    <div class="photo-list" id="shopPhotoList"></div>
+    <input type="file" id="shopPhotoInput" accept="image/*" style="display:none" onchange="uploadShopPhoto(event)">
+
     <div class="shop-save-row">
       <button class="btn" onclick="saveShop()">保存店铺信息</button>
       <span class="save-msg" id="shopSaveMsg"></span>
     </div>
+  </div>
+
+  <div class="card">
+    <h2>续费</h2>
+    <div id="renewalStatus"></div>
+    <div id="renewalForm"></div>
   </div>
 
   <div class="card product-list">
@@ -233,6 +258,14 @@ function escapeHtml(s){
 }
 
 let currentBanner = '';
+let currentShopPhotos = [];
+let renewalInfo = null;
+
+function fmtDate(ts){
+  if(!ts) return '';
+  const d = new Date(ts);
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+}
 
 // ---- 店铺信息 ----
 async function loadShop(){
@@ -248,20 +281,25 @@ async function loadShop(){
   document.getElementById('contactWechat').value = d.contactWechat || '';
   document.getElementById('contactPhone').value = d.contactPhone || '';
   currentBanner = d.banner || '';
+  currentShopPhotos = (d.shopPhotos || []).slice();
+  renewalInfo = d.renewal || null;
   renderBanner();
+  renderShopPhotos();
   renderStatusBar(d.access);
+  renderRenewal(d.access);
 }
 
 function renderStatusBar(access){
   const bar = document.getElementById('statusBar');
   if(!access){ bar.innerHTML = ''; return; }
+  const dateStr = access.expiresAt ? `（到期日：${fmtDate(access.expiresAt)}）` : '';
   const texts = {
-    free_build: `<b>免费搭建期</b>，剩 ${access.daysLeft} 天。期间可以随意装修店铺、上传商品，店铺对外可见。想继续使用可联系平台付20元开通2周试用。`,
-    free_expired: `免费搭建期已到期，店铺<b>暂时下线</b>（家长看不到），数据会保留到到期后1个月。请联系平台付20元开通试用，或点击右侧注销店铺。`,
-    paid_trial: `<b>付费试用中</b>，剩 ${access.daysLeft} 天。到期前请联系平台正式开通，否则店铺会下线。`,
-    paid_trial_expired: `付费试用已到期，店铺<b>暂时下线</b>，数据会保留到到期后1个月。请联系平台正式开通，或点击右侧注销店铺。`,
-    active: `<b>已正式开通</b>，剩 ${access.daysLeft} 天，店铺正常对外展示。`,
-    active_expired: `开通已到期，店铺<b>暂时下线</b>，数据会保留到到期后1个月。请联系平台续费开通，或点击右侧注销店铺。`,
+    free_build: `<b>免费搭建期</b>，剩 ${access.daysLeft} 天${dateStr}。期间可以随意装修店铺、上传商品，店铺对外可见。想继续使用可在下方"续费"直接自助办理。`,
+    free_expired: `免费搭建期已到期，店铺<b>暂时下线</b>（家长看不到），数据会保留到到期后1个月。请在下方"续费"自助开通，或点击右侧注销店铺。`,
+    paid_trial: `<b>付费试用中</b>，剩 ${access.daysLeft} 天${dateStr}。到期前请在下方"续费"办理，否则店铺会下线。`,
+    paid_trial_expired: `付费试用已到期，店铺<b>暂时下线</b>，数据会保留到到期后1个月。请在下方"续费"自助开通，或点击右侧注销店铺。`,
+    active: `<b>已正式开通</b>，剩 ${access.daysLeft} 天${dateStr}，店铺正常对外展示。`,
+    active_expired: `开通已到期，店铺<b>暂时下线</b>，数据会保留到到期后1个月。请在下方"续费"续期，或点击右侧注销店铺。`,
     closed: `店铺已注销，数据将在注销后1个月内保留。`
   };
   const cls = {
@@ -270,6 +308,120 @@ function renderStatusBar(access){
   }[access.phase] || 'warn';
   const showCloseBtn = access.phase !== 'closed';
   bar.innerHTML = `<div class="status-bar ${cls}">${texts[access.phase] || ''}${showCloseBtn ? '<button class="close-account" onclick="closeAccount()">注销店铺</button>' : ''}</div>`;
+}
+
+// ---- 店内照片 ----
+function renderShopPhotos(){
+  const list = document.getElementById('shopPhotoList');
+  const imgs = currentShopPhotos.map((url,i) => `
+    <div class="photo-item"><img src="${url}"><button class="del" onclick="removeShopPhoto(${i})">×</button></div>
+  `).join('');
+  list.innerHTML = imgs + (currentShopPhotos.length < 4 ? '<div class="photo-add" onclick="document.getElementById(\'shopPhotoInput\').click()">+</div>' : '');
+}
+function removeShopPhoto(i){ currentShopPhotos.splice(i,1); renderShopPhotos(); }
+
+async function uploadShopPhoto(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  if(currentShopPhotos.length >= 4){ alert('最多上传4张店内照片'); e.target.value=''; return; }
+  const fd = new FormData();
+  fd.append('file', file);
+  try{
+    const r = await apiFetch('/api/upload', {method:'POST', headers: authHeaders(), body: fd});
+    const d = await r.json();
+    if(d.ok){ currentShopPhotos.push(d.url); renderShopPhotos(); }
+    else alert(d.msg || '上传失败');
+  }catch(err){
+    alert('上传失败，请重试');
+  }
+  e.target.value = '';
+}
+
+// ---- 续费 ----
+let selectedPlanIdx = 0;
+let renewalShotUrl = '';
+let currentPlans = [];
+
+function renderRenewal(access){
+  const statusEl = document.getElementById('renewalStatus');
+  const formEl = document.getElementById('renewalForm');
+  if(!renewalInfo){ statusEl.innerHTML=''; formEl.innerHTML=''; return; }
+
+  if(renewalInfo.pending){
+    const p = renewalInfo.pending;
+    statusEl.innerHTML = `<div class="renewal-pending">续费申请审核中：${escapeHtml(p.label)}，¥${p.amount}，提交于 ${fmtDate(p.createdAt)}。审核通过后会自动延长到期日，请耐心等待。</div>`;
+    formEl.innerHTML = '';
+    return;
+  }
+  statusEl.innerHTML = '';
+
+  currentPlans = [];
+  if(renewalInfo.firstMonthEligible){
+    currentPlans.push({months:1, amount:renewalInfo.firstMonthPrice, label:'首月（优惠价）', isFirst:true});
+  }else{
+    currentPlans.push({months:1, amount:renewalInfo.pricing[1], label:'1个月', isFirst:false});
+  }
+  currentPlans.push({months:3, amount:renewalInfo.pricing[3], label:'3个月', isFirst:false});
+  currentPlans.push({months:6, amount:renewalInfo.pricing[6], label:'半年', isFirst:false});
+  currentPlans.push({months:12, amount:renewalInfo.pricing[12], label:'1年', isFirst:false});
+
+  if(selectedPlanIdx >= currentPlans.length) selectedPlanIdx = 0;
+
+  formEl.innerHTML = `
+    <div class="plan-grid">
+      ${currentPlans.map((pl,i) => `
+        <div class="plan-chip ${i===selectedPlanIdx?'active':''}" onclick="selectPlan(${i})">
+          <div class="t">${pl.label}</div>
+          <div class="p">¥${pl.amount}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="img-hint" style="margin-top:10px;">选好套餐后，用微信转账给平台对应金额，截图上传，提交后等待平台审核通过即可自动延长到期日。</div>
+    <div class="shot-upload-sm" id="renewalShotBox" onclick="document.getElementById('renewalShotInput').click()" style="${renewalShotUrl?`background-image:url('${renewalShotUrl}')`:''}">${renewalShotUrl?'':'点击上传付款截图'}</div>
+    <input type="file" id="renewalShotInput" accept="image/*" style="display:none" onchange="uploadRenewalShot(event)">
+    <div class="shop-save-row">
+      <button class="btn" onclick="submitRenewal()">提交续费申请</button>
+      <span class="save-msg" id="renewalMsg"></span>
+    </div>
+  `;
+}
+
+function selectPlan(i){
+  selectedPlanIdx = i;
+  renderRenewal();
+}
+
+async function uploadRenewalShot(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  try{
+    const r = await apiFetch('/api/upload', {method:'POST', headers: authHeaders(), body: fd});
+    const d = await r.json();
+    if(d.ok){ renewalShotUrl = d.url; renderRenewal(); }
+    else alert(d.msg || '上传失败');
+  }catch(err){
+    alert('上传失败，请重试');
+  }
+  e.target.value = '';
+}
+
+async function submitRenewal(){
+  if(!renewalShotUrl){ alert('请先上传微信付款截图'); return; }
+  const pl = currentPlans[selectedPlanIdx];
+  const r = await apiFetch('/api/my/renewal', {method:'POST', headers: authHeaders(true), body: JSON.stringify({months: pl.months, screenshot: renewalShotUrl})});
+  const d = await r.json();
+  const msg = document.getElementById('renewalMsg');
+  if(d.ok){
+    renewalShotUrl = '';
+    selectedPlanIdx = 0;
+    msg.textContent = '';
+    loadShop();
+  }else{
+    msg.textContent = d.msg || '提交失败';
+    msg.style.color = '#d92b2b';
+  }
 }
 
 async function closeAccount(){
@@ -313,7 +465,8 @@ async function saveShop(){
     address: document.getElementById('address').value.trim(),
     contactWechat: document.getElementById('contactWechat').value.trim(),
     contactPhone: document.getElementById('contactPhone').value.trim(),
-    banner: currentBanner
+    banner: currentBanner,
+    shopPhotos: currentShopPhotos
   };
   const r = await apiFetch('/api/shop', {method:'PUT', headers: authHeaders(true), body: JSON.stringify(body)});
   const d = await r.json();

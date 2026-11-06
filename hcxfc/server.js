@@ -100,6 +100,15 @@ function genOrderId() {
   return 'o_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
+function genRenewalId() {
+  return 'r_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+// ---------- 续费定价 ----------
+// 首月15元仅限从未付费过的商家（首次续费），之后统一按月费率计算：1/3/6/12个月
+const RENEWAL_FIRST_MONTH_PRICE = 15;
+const RENEWAL_PRICING = { 1: 30, 3: 90, 6: 180, 12: 360 };
+
 // ---------- 试用/订阅状态机 ----------
 // 流程：注册即进入"免费搭建期"(3天) → 商家付20元后由管理员标记"付费试用"(14天)
 // → 到期后由管理员"正式开通"(设到期日) 或商家"注销"；任何到期状态都有30天数据宽限期，
@@ -144,9 +153,11 @@ function parseShopData(row) {
     const d = JSON.parse(row.shop_data || '{}');
     if (!Array.isArray(d.products)) d.products = [];
     if (!Array.isArray(d.orders)) d.orders = [];
+    if (!Array.isArray(d.renewalRequests)) d.renewalRequests = [];
+    if (!Array.isArray(d.shopPhotos)) d.shopPhotos = [];
     return d;
   } catch (e) {
-    return { products: [], orders: [] };
+    return { products: [], orders: [], renewalRequests: [], shopPhotos: [] };
   }
 }
 
@@ -159,7 +170,8 @@ function publicShopInfo(row) {
     intro: d.intro || '',
     address: d.address || '',
     contactWechat: d.contactWechat || '',
-    contactPhone: d.contactPhone || ''
+    contactPhone: d.contactPhone || '',
+    shopPhotos: d.shopPhotos || []
   };
 }
 
@@ -258,6 +270,8 @@ app.post('/api/login', (req, res) => {
 // ===== 商家自己：店铺信息 =====
 app.get('/api/me', auth, (req, res) => {
   const d = parseShopData(req.merchant);
+  const everPaid = !!(req.merchant.trial_paid_at || req.merchant.active_until || d.everPaid);
+  const pendingRenewal = d.renewalRequests.find(r => r.status === 'pending') || null;
   res.json({
     ok: true,
     phone: req.merchant.phone,
@@ -269,7 +283,14 @@ app.get('/api/me', auth, (req, res) => {
     address: d.address || '',
     contactWechat: d.contactWechat || '',
     contactPhone: d.contactPhone || '',
-    access: computeAccessState(req.merchant)
+    shopPhotos: d.shopPhotos || [],
+    access: computeAccessState(req.merchant),
+    renewal: {
+      firstMonthEligible: !everPaid,
+      firstMonthPrice: RENEWAL_FIRST_MONTH_PRICE,
+      pricing: RENEWAL_PRICING,
+      pending: pendingRenewal
+    }
   });
 });
 
@@ -282,13 +303,14 @@ app.post('/api/account/close', auth, (req, res) => {
 
 app.put('/api/shop', auth, (req, res) => {
   const d = parseShopData(req.merchant);
-  const { shopName, banner, intro, address, contactWechat, contactPhone } = req.body || {};
+  const { shopName, banner, intro, address, contactWechat, contactPhone, shopPhotos } = req.body || {};
   if (shopName !== undefined) d.shopName = String(shopName).slice(0, 60);
   if (banner !== undefined) d.banner = banner;
   if (intro !== undefined) d.intro = String(intro).slice(0, 300);
   if (address !== undefined) d.address = String(address).slice(0, 120);
   if (contactWechat !== undefined) d.contactWechat = String(contactWechat).slice(0, 60);
   if (contactPhone !== undefined) d.contactPhone = String(contactPhone).slice(0, 30);
+  if (shopPhotos !== undefined) d.shopPhotos = Array.isArray(shopPhotos) ? shopPhotos.slice(0, 4).map(s => String(s).slice(0, 300)) : [];
   db.prepare('UPDATE merchants SET shop_data = ? WHERE id = ?').run(JSON.stringify(d), req.merchant.id);
   res.json({ ok: true });
 });
@@ -368,6 +390,42 @@ app.put('/api/my/orders/:id/status', auth, (req, res) => {
   o.shippedAt = status === 'shipped' ? Date.now() : null;
   db.prepare('UPDATE merchants SET shop_data = ? WHERE id = ?').run(JSON.stringify(d), req.merchant.id);
   res.json({ ok: true, order: o });
+});
+
+// ===== 商家自己：自助续费申请（微信转账截图，提交后等待平台审核）=====
+app.post('/api/my/renewal', auth, (req, res) => {
+  const d = parseShopData(req.merchant);
+  const existingPending = d.renewalRequests.find(r => r.status === 'pending');
+  if (existingPending) return res.status(400).json({ ok: false, msg: '已有一条续费申请在审核中，请等待处理' });
+
+  const { months, screenshot } = req.body || {};
+  const m = parseInt(months, 10);
+  if (!screenshot) return res.status(400).json({ ok: false, msg: '请上传微信付款截图' });
+
+  const everPaid = !!(req.merchant.trial_paid_at || req.merchant.active_until || d.everPaid);
+  let amount, label;
+  if (m === 1 && !everPaid) {
+    amount = RENEWAL_FIRST_MONTH_PRICE;
+    label = '首月（优惠价）';
+  } else if (RENEWAL_PRICING[m]) {
+    amount = RENEWAL_PRICING[m];
+    label = m === 1 ? '1个月' : (m === 3 ? '3个月' : (m === 6 ? '半年' : '1年'));
+  } else {
+    return res.status(400).json({ ok: false, msg: '续费时长不对' });
+  }
+
+  const req_ = {
+    id: genRenewalId(),
+    months: m,
+    amount,
+    label,
+    screenshot: String(screenshot).slice(0, 300),
+    status: 'pending',
+    createdAt: Date.now()
+  };
+  d.renewalRequests.unshift(req_);
+  db.prepare('UPDATE merchants SET shop_data = ? WHERE id = ?').run(JSON.stringify(d), req.merchant.id);
+  res.json({ ok: true, request: req_ });
 });
 
 // ===== 图片上传 =====
@@ -459,7 +517,8 @@ app.get('/api/shop/:shopId', (req, res) => {
   const d = parseShopData(row);
   const products = d.products.filter(p => p.status === 'active').map(p => publicProduct(row, p));
   const schools = Array.from(new Set(products.map(p => p.school).filter(Boolean)));
-  res.json({ ok: true, shop: publicShopInfo(row), schools, products });
+  const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
+  res.json({ ok: true, shop: publicShopInfo(row), schools, categories, products });
 });
 
 // ===== 总后台（管理员）=====
@@ -475,10 +534,68 @@ app.get('/api/admin/merchants', auth, requireAdmin, (req, res) => {
       status: row.status,
       productCount: d.products.length,
       createdAt: row.created_at,
-      access: computeAccessState(row)
+      access: computeAccessState(row),
+      pendingRenewal: d.renewalRequests.find(r => r.status === 'pending') || null
     };
   });
   res.json({ ok: true, merchants: list });
+});
+
+// 续费审核：列出所有商家的待审核续费申请
+app.get('/api/admin/renewal-requests', auth, requireAdmin, (req, res) => {
+  const rows = db.prepare("SELECT * FROM merchants WHERE role = 'merchant' ORDER BY created_at DESC").all();
+  const list = [];
+  for (const row of rows) {
+    const d = parseShopData(row);
+    for (const r of d.renewalRequests) {
+      if (r.status === 'pending') {
+        list.push({
+          merchantId: row.id,
+          shopId: row.shop_id,
+          shopName: d.shopName || '',
+          phone: row.phone,
+          access: computeAccessState(row),
+          request: r
+        });
+      }
+    }
+  }
+  list.sort((a, b) => b.request.createdAt - a.request.createdAt);
+  res.json({ ok: true, requests: list });
+});
+
+// 通过续费申请：按申请的月数延长到期日（如仍在有效期内则在原到期日基础上累加，否则从现在起算）
+app.put('/api/admin/merchants/:id/approve-renewal', auth, requireAdmin, (req, res) => {
+  const row = db.prepare("SELECT * FROM merchants WHERE id = ? AND role = 'merchant'").get(req.params.id);
+  if (!row) return res.status(404).json({ ok: false, msg: '商家不存在' });
+  const d = parseShopData(row);
+  const { requestId } = req.body || {};
+  const r = d.renewalRequests.find(x => x.id === requestId && x.status === 'pending');
+  if (!r) return res.status(404).json({ ok: false, msg: '续费申请不存在或已处理' });
+
+  const now = Date.now();
+  const base = (row.active_until && row.active_until > now) ? row.active_until : now;
+  const until = base + r.months * DAY * 30;
+
+  r.status = 'approved';
+  r.approvedAt = now;
+  d.everPaid = true;
+  db.prepare('UPDATE merchants SET shop_data = ?, active_until = ?, closed_at = NULL WHERE id = ?').run(JSON.stringify(d), until, row.id);
+  res.json({ ok: true, activeUntil: until });
+});
+
+// 拒绝续费申请
+app.put('/api/admin/merchants/:id/reject-renewal', auth, requireAdmin, (req, res) => {
+  const row = db.prepare("SELECT * FROM merchants WHERE id = ? AND role = 'merchant'").get(req.params.id);
+  if (!row) return res.status(404).json({ ok: false, msg: '商家不存在' });
+  const d = parseShopData(row);
+  const { requestId } = req.body || {};
+  const r = d.renewalRequests.find(x => x.id === requestId && x.status === 'pending');
+  if (!r) return res.status(404).json({ ok: false, msg: '续费申请不存在或已处理' });
+  r.status = 'rejected';
+  r.rejectedAt = Date.now();
+  db.prepare('UPDATE merchants SET shop_data = ? WHERE id = ?').run(JSON.stringify(d), row.id);
+  res.json({ ok: true });
 });
 
 app.put('/api/admin/merchants/:id/status', auth, requireAdmin, (req, res) => {
