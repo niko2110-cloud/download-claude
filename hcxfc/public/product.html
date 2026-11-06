@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>商品详情 - 校服之家</title>
+<style>
+  :root{--primary:#c1592f;--primary-dark:#9e4524;--primary-tint:#f3e3d6;--bg:#f8f1e6;--card:#fff;--text:#2b231c;--muted:#8a7a68;--border:#ebdcc8;--price:#9e4524;--navy:#27415f;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);padding-bottom:84px;}
+  .topbar{background:#fff;border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+  .back{color:var(--muted);text-decoration:none;font-size:20px;line-height:1;}
+  .topbar h1{font-size:15px;margin:0;font-weight:600;}
+
+  .gallery{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;background:#f1ece6;}
+  .gallery img{width:100%;aspect-ratio:1/1;object-fit:cover;flex-shrink:0;scroll-snap-align:start;}
+  .gallery.empty{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;color:#d8cfc3;font-size:60px;}
+  .dots{display:flex;justify-content:center;gap:5px;padding:8px 0;background:#f1ece6;}
+  .dot{width:5px;height:5px;border-radius:50%;background:#d8cfc3;}
+  .dot.active{background:var(--primary);width:14px;border-radius:3px;}
+
+  .container{max-width:560px;margin:0 auto;padding:16px;}
+  .main-card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:12px;}
+  .name{font-size:17px;font-weight:700;margin:0 0 8px;}
+  .price{font-size:22px;color:var(--price);font-weight:800;margin-bottom:10px;}
+  .tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+  .tag{background:var(--primary-tint);color:var(--primary-dark);font-size:12px;padding:4px 10px;border-radius:20px;}
+  .desc{font-size:13.5px;color:var(--muted);line-height:1.6;white-space:pre-wrap;}
+  .size-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+  .size-chip{border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--text);}
+  .shop-card{background:var(--card);border-radius:12px;padding:16px;display:flex;align-items:center;gap:10px;}
+  .shop-card .avatar{width:40px;height:40px;border-radius:10px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;}
+  .shop-card .shopname{font-size:14px;font-weight:600;}
+  .shop-card .link{margin-left:auto;font-size:12px;color:var(--primary);text-decoration:none;}
+  .section-label{font-size:12px;color:var(--muted);margin:0 0 8px;font-weight:600;}
+  .bottom-bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);padding:10px 16px;display:flex;gap:10px;max-width:560px;margin:0 auto;}
+  .btn{flex:1;text-align:center;padding:13px 0;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;border:none;}
+  .btn-wechat{background:#07c160;color:#fff;}
+  .btn-phone{background:var(--primary);color:#fff;}
+  .empty{text-align:center;color:var(--muted);padding:60px 20px;}
+  .contact-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:20;align-items:flex-end;}
+  .contact-modal-bg.show{display:flex;}
+  .contact-modal{background:#fff;border-radius:16px 16px 0 0;padding:20px 20px 28px;width:100%;max-width:560px;margin:0 auto;}
+  .contact-modal h3{margin:0 0 12px;font-size:15px;}
+  .contact-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;}
+  .copy-btn{font-size:12px;color:var(--primary);border:1px solid var(--primary);border-radius:6px;padding:4px 10px;background:none;text-decoration:none;}
+  .close-modal{display:block;width:100%;text-align:center;margin-top:14px;color:var(--muted);font-size:13px;background:none;border:none;padding:8px;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="javascript:history.back()">←</a>
+  <h1>商品详情</h1>
+</div>
+
+<div id="content"></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const shopId = params.get('shop');
+const id = params.get('id');
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function load(){
+  const content = document.getElementById('content');
+  if(!shopId || !id){
+    content.innerHTML = '<div class="empty">商品链接不对</div>';
+    return;
+  }
+  try{
+    const r = await fetch('/api/product/' + encodeURIComponent(shopId) + '/' + encodeURIComponent(id));
+    const d = await r.json();
+    if(!d.ok){ content.innerHTML = '<div class="empty">' + escapeHtml(d.msg || '商品不存在或已下架') + '</div>'; return; }
+    render(d.product);
+  }catch(e){
+    content.innerHTML = '<div class="empty">加载失败，请重试</div>';
+  }
+}
+
+function render(p){
+  document.title = p.name + ' - 校服之家';
+  const content = document.getElementById('content');
+  const imgs = (p.images && p.images.length) ? p.images : [];
+  const gallery = imgs.length
+    ? `<div class="gallery" id="gallery">${imgs.map(img => `<img src="${img}">`).join('')}</div>
+       ${imgs.length > 1 ? `<div class="dots">${imgs.map((_,i) => `<div class="dot ${i===0?'active':''}"></div>`).join('')}</div>` : ''}`
+    : `<div class="gallery empty">👕</div>`;
+
+  content.innerHTML = `
+    ${gallery}
+    <div class="container">
+      <div class="main-card">
+        <div class="name">${escapeHtml(p.name)}</div>
+        <div class="price">${p.price ? '¥' + escapeHtml(p.price) : '价格面议'}</div>
+        <div class="tag-row">
+          <span class="tag">${escapeHtml(p.school)}</span>
+          <span class="tag">${escapeHtml(p.season)}</span>
+        </div>
+        ${p.sizes && p.sizes.length ? `
+          <div class="section-label">可选尺码</div>
+          <div class="size-row">${p.sizes.map(s => `<span class="size-chip">${escapeHtml(s)}</span>`).join('')}</div>
+        ` : ''}
+        ${p.desc ? `<div class="section-label" style="margin-top:10px;">商品说明</div><div class="desc">${escapeHtml(p.desc)}</div>` : ''}
+      </div>
+      <div class="shop-card">
+        <div class="avatar">${escapeHtml((p.shopName||'店').slice(0,1))}</div>
+        <div class="shopname">${escapeHtml(p.shopName)}</div>
+        <a class="link" href="/shop.html?shop=${encodeURIComponent(p.shopId)}">查看店铺 ›</a>
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <button class="btn btn-wechat" onclick="openContact()">微信联系</button>
+      <button class="btn btn-phone" onclick="openContact()">电话联系</button>
+    </div>
+    <div class="contact-modal-bg" id="modalBg" onclick="closeModal(event)">
+      <div class="contact-modal">
+        <h3>联系商家 · ${escapeHtml(p.shopName)}</h3>
+        ${p.contactWechat ? `<div class="contact-item"><span>微信号：${escapeHtml(p.contactWechat)}</span><button class="copy-btn" onclick="copyText('${escapeHtml(p.contactWechat)}')">复制</button></div>` : ''}
+        ${p.contactPhone ? `<div class="contact-item"><span>电话：${escapeHtml(p.contactPhone)}</span><a class="copy-btn" href="tel:${escapeHtml(p.contactPhone)}">拨打</a></div>` : ''}
+        ${(!p.contactWechat && !p.contactPhone) ? `<div class="contact-item" style="border-bottom:none;color:#6b7280;">商家暂未留下联系方式</div>` : ''}
+        <button class="close-modal" onclick="closeModal()">关闭</button>
+      </div>
+    </div>
+  `;
+
+  const gal = document.getElementById('gallery');
+  if(gal){
+    gal.addEventListener('scroll', () => {
+      const idx = Math.round(gal.scrollLeft / gal.clientWidth);
+      document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i===idx));
+    });
+  }
+}
+
+function openContact(){
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeModal(e){
+  if(e && e.target.id !== 'modalBg') return;
+  document.getElementById('modalBg').classList.remove('show');
+}
+function copyText(t){
+  navigator.clipboard && navigator.clipboard.writeText(t).then(()=>alert('已复制：' + t)).catch(()=>alert('复制失败，请手动复制：' + t));
+}
+
+load();
+</script>
+</body>
+</html>

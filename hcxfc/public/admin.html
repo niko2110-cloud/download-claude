@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>总后台 - 校服之家</title>
+<style>
+  :root{--primary:#c1592f;--primary-dark:#9e4524;--bg:#f8f1e6;--card:#fff;--text:#2b231c;--muted:#8a7a68;--border:#ebdcc8;--navy:#27415f;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);padding-bottom:40px;}
+  .topbar{background:#fff;border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+  .topbar h1{font-size:16px;margin:0;flex:1;}
+  .logout{font-size:13px;color:var(--muted);text-decoration:none;}
+  .container{max-width:720px;margin:0 auto;padding:16px;}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+  .stat-card{background:var(--card);border-radius:12px;padding:14px;text-align:center;}
+  .stat-card .num{font-size:20px;font-weight:700;color:var(--primary);}
+  .stat-card .label{font-size:11.5px;color:var(--muted);margin-top:4px;}
+  .card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+  .card h2{font-size:14px;margin:0 0 14px;font-weight:600;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:left;padding:10px 6px;border-bottom:1px solid var(--border);}
+  th{color:var(--muted);font-weight:500;font-size:12px;}
+  .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;white-space:nowrap;}
+  .badge-active{background:#e7f8ee;color:#07c160;}
+  .badge-banned{background:#fdecea;color:#e4572e;}
+  .badge-free{background:#eaf1fb;color:var(--navy);}
+  .badge-paid{background:#f3e3d6;color:var(--primary-dark);}
+  .badge-expired{background:#fdecea;color:#c0392b;}
+  .badge-closed{background:#efefef;color:#6b7280;}
+  .btn-sm{padding:5px 10px;font-size:12px;border-radius:6px;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--text);}
+  .btn-sm + .btn-sm{margin-left:4px;}
+  .btn-danger-sm{color:#c0392b;border-color:#c0392b;}
+  .empty{text-align:center;color:var(--muted);padding:30px 0;font-size:13.5px;}
+  .shop-cell{max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .actions-cell{display:flex;flex-wrap:wrap;gap:4px;}
+  table{display:block;overflow-x:auto;white-space:nowrap;}
+  td,th{white-space:nowrap;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>总后台</h1>
+  <a class="logout" href="javascript:logout()">退出登录</a>
+</div>
+
+<div class="container">
+  <div class="stat-grid" id="statGrid"></div>
+
+  <div class="card">
+    <h2>商家列表</h2>
+    <table>
+      <thead>
+        <tr><th>店铺</th><th>手机号</th><th>商品数</th><th>封禁状态</th><th>试用/订阅状态</th><th>操作</th></tr>
+      </thead>
+      <tbody id="merchantTbody"></tbody>
+    </table>
+    <div id="emptyTip" class="empty" style="display:none;">还没有商家入驻</div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('hcxfc_token');
+if(!token){ location.href = '/merchant_login.html'; }
+
+function authHeaders(json){
+  const h = {'Authorization': 'Bearer ' + token};
+  if(json) h['Content-Type'] = 'application/json';
+  return h;
+}
+function logout(){
+  localStorage.removeItem('hcxfc_token');
+  localStorage.removeItem('hcxfc_role');
+  location.href = '/merchant_login.html';
+}
+async function apiFetch(url, opts){
+  const r = await fetch(url, opts);
+  if(r.status === 401){ logout(); throw new Error('未登录'); }
+  if(r.status === 403){ alert('无权限访问总后台'); location.href = '/merchant_admin.html'; throw new Error('无权限'); }
+  return r;
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function loadStats(){
+  const r = await apiFetch('/api/admin/stats', {headers: authHeaders()});
+  const d = await r.json();
+  if(!d.ok) return;
+  const s = d.stats;
+  document.getElementById('statGrid').innerHTML = `
+    <div class="stat-card"><div class="num">${s.activeMerchantCount}</div><div class="label">入驻商家</div></div>
+    <div class="stat-card"><div class="num">${s.activeProductCount}</div><div class="label">在售商品</div></div>
+    <div class="stat-card"><div class="num">${s.schoolCount}</div><div class="label">覆盖学校</div></div>
+  `;
+}
+
+async function loadMerchants(){
+  const r = await apiFetch('/api/admin/merchants', {headers: authHeaders()});
+  const d = await r.json();
+  if(!d.ok) return;
+  const tbody = document.getElementById('merchantTbody');
+  if(!d.merchants.length){
+    document.getElementById('emptyTip').style.display = 'block';
+    return;
+  }
+  tbody.innerHTML = d.merchants.map(m => `
+    <tr>
+      <td class="shop-cell">${escapeHtml(m.shopName)}</td>
+      <td>${escapeHtml(m.phone)}</td>
+      <td>${m.productCount}</td>
+      <td>${m.status === 'banned' ? '<span class="badge badge-banned">已封禁</span>' : '<span class="badge badge-active">正常</span>'}</td>
+      <td>${phaseBadge(m.access)}</td>
+      <td class="actions-cell">
+        <button class="btn-sm" onclick="toggleStatus(${m.id}, '${m.status}')">${m.status === 'banned' ? '解封' : '封禁'}</button>
+        <button class="btn-sm" onclick="markPaid(${m.id})">标记已付20元试用</button>
+        <button class="btn-sm" onclick="activateMerchant(${m.id})">正式开通</button>
+        ${m.access.purgeEligible ? `<button class="btn-sm btn-danger-sm" onclick="purgeMerchant(${m.id})">清理过期数据</button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function phaseBadge(access){
+  const map = {
+    free_build: ['badge-free', '免费搭建期'],
+    free_expired: ['badge-expired', '免费期已到期'],
+    paid_trial: ['badge-paid', '付费试用中'],
+    paid_trial_expired: ['badge-expired', '付费试用已到期'],
+    active: ['badge-active', '已开通'],
+    active_expired: ['badge-expired', '开通已到期'],
+    closed: ['badge-closed', '已注销'],
+    banned: ['badge-banned', '已封禁']
+  };
+  const [cls, label] = map[access.phase] || ['badge-closed', access.label || '未知'];
+  const days = (access.daysLeft !== undefined) ? `（剩${access.daysLeft}天）` : '';
+  const grace = (access.purgeEligible === false && access.purgeAt) ? '（宽限期内）' : '';
+  return `<span class="badge ${cls}">${label}${days}${grace}</span>`;
+}
+
+async function markPaid(id){
+  if(!confirm('确认商家已线下付20元？将开始计算14天付费试用期。')) return;
+  const r = await apiFetch('/api/admin/merchants/' + id + '/mark-paid', {method:'PUT', headers: authHeaders()});
+  const d = await r.json();
+  if(d.ok){ loadMerchants(); } else alert(d.msg || '操作失败');
+}
+
+async function activateMerchant(id){
+  const days = prompt('正式开通，请输入开通天数（例如 365）：', '365');
+  if(!days) return;
+  const n = parseInt(days, 10);
+  if(!n || n <= 0){ alert('天数不对'); return; }
+  const r = await apiFetch('/api/admin/merchants/' + id + '/activate', {method:'PUT', headers: authHeaders(true), body: JSON.stringify({days: n})});
+  const d = await r.json();
+  if(d.ok){ loadMerchants(); } else alert(d.msg || '操作失败');
+}
+
+async function purgeMerchant(id){
+  if(!confirm('确认清理该商家的全部数据？此操作不可恢复（该手机号的注册次数计数仍会保留）。')) return;
+  const r = await apiFetch('/api/admin/merchants/' + id + '/purge', {method:'DELETE', headers: authHeaders()});
+  const d = await r.json();
+  if(d.ok){ loadMerchants(); } else alert(d.msg || '操作失败');
+}
+
+async function toggleStatus(id, currentStatus){
+  const newStatus = currentStatus === 'banned' ? 'active' : 'banned';
+  const label = newStatus === 'banned' ? '封禁' : '解封';
+  if(!confirm('确定要' + label + '这个商家吗？')) return;
+  const r = await apiFetch('/api/admin/merchants/' + id + '/status', {method:'PUT', headers: authHeaders(true), body: JSON.stringify({status:newStatus})});
+  const d = await r.json();
+  if(d.ok){ loadMerchants(); }
+  else alert(d.msg || '操作失败');
+}
+
+loadStats();
+loadMerchants();
+</script>
+</body>
+</html>

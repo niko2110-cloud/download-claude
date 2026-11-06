@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>店铺 - 校服之家</title>
+<style>
+  :root{--primary:#c1592f;--primary-dark:#9e4524;--primary-tint:#f3e3d6;--bg:#f8f1e6;--card:#fff;--text:#2b231c;--muted:#8a7a68;--border:#ebdcc8;--price:#9e4524;--navy:#27415f;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);}
+  .banner{width:100%;aspect-ratio:3/1;background:linear-gradient(135deg,var(--navy),#3a5a82) center/cover no-repeat;position:relative;}
+  .shop-head{background:var(--card);padding:16px;border-bottom:1px solid var(--border);margin-bottom:4px;}
+  .shop-head .row1{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .avatar{width:48px;height:48px;border-radius:12px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;}
+  .shopname{font-size:17px;font-weight:700;}
+  .intro{font-size:13px;color:var(--muted);line-height:1.6;margin:6px 0;white-space:pre-wrap;}
+  .meta-row{display:flex;align-items:flex-start;gap:6px;font-size:12.5px;color:var(--muted);margin-top:6px;}
+  .meta-row .icon{flex-shrink:0;}
+  .contact-bar{display:flex;gap:10px;margin-top:12px;}
+  .contact-bar .btn{flex:1;text-align:center;padding:10px 0;border-radius:8px;font-size:13px;font-weight:600;border:none;}
+  .btn-wechat{background:#07c160;color:#fff;}
+  .btn-phone{background:var(--primary);color:#fff;}
+
+  .tabs{display:flex;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;}
+  .tab{padding:12px 16px;font-size:13.5px;color:var(--muted);white-space:nowrap;cursor:pointer;border-bottom:2px solid transparent;flex-shrink:0;}
+  .tab.active{color:var(--primary);font-weight:700;border-bottom-color:var(--primary);}
+
+  .container{max-width:560px;margin:0 auto;padding:16px;}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);}
+  .card .thumb{width:100%;aspect-ratio:1/1;background:#f1ece6 center/cover no-repeat;display:block;}
+  .card .info{padding:10px 10px 12px;}
+  .card .name{font-size:13.5px;font-weight:600;margin:0 0 4px;line-height:1.3;}
+  .card .price{font-size:14px;color:var(--price);font-weight:700;}
+  .empty{text-align:center;color:var(--muted);padding:60px 20px;font-size:14px;}
+</style>
+</head>
+<body>
+<div id="bannerWrap"></div>
+<div id="shopHead"></div>
+<div id="tabsWrap"></div>
+<div class="container">
+  <div id="grid" class="grid"></div>
+  <div id="emptyTip" class="empty" style="display:none;">这家店铺还没有上架商品</div>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const shopId = params.get('shop');
+let allProducts = [];
+let schools = [];
+let currentSchool = '';
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function load(){
+  if(!shopId){ document.getElementById('emptyTip').style.display='block'; return; }
+  try{
+    const r = await fetch('/api/shop/' + encodeURIComponent(shopId));
+    const d = await r.json();
+    if(!d.ok){ document.getElementById('emptyTip').style.display='block'; document.getElementById('emptyTip').textContent = d.msg || '店铺不存在或已下线'; return; }
+    document.title = d.shop.shopName + ' - 校服之家';
+
+    document.getElementById('bannerWrap').innerHTML = d.shop.banner
+      ? `<div class="banner" style="background-image:url('${d.shop.banner}')"></div>`
+      : `<div class="banner"></div>`;
+
+    document.getElementById('shopHead').innerHTML = `
+      <div class="shop-head">
+        <div class="row1">
+          <div class="avatar">${escapeHtml((d.shop.shopName||'店').slice(0,1))}</div>
+          <div class="shopname">${escapeHtml(d.shop.shopName)}</div>
+        </div>
+        ${d.shop.intro ? `<div class="intro">${escapeHtml(d.shop.intro)}</div>` : ''}
+        ${d.shop.address ? `<div class="meta-row"><span class="icon">📍</span><span>${escapeHtml(d.shop.address)}</span></div>` : ''}
+        <div class="contact-bar">
+          ${d.shop.contactWechat ? `<button class="btn btn-wechat" onclick="copyText('${escapeHtml(d.shop.contactWechat)}')">微信：${escapeHtml(d.shop.contactWechat)}</button>` : ''}
+          ${d.shop.contactPhone ? `<a class="btn btn-phone" href="tel:${escapeHtml(d.shop.contactPhone)}">电话联系</a>` : ''}
+        </div>
+      </div>
+    `;
+
+    allProducts = d.products;
+    schools = d.schools || [];
+    currentSchool = schools[0] || '';
+    renderTabs();
+    renderGrid();
+  }catch(e){
+    document.getElementById('emptyTip').style.display='block';
+  }
+}
+
+function renderTabs(){
+  if(!schools.length){ document.getElementById('tabsWrap').innerHTML = ''; return; }
+  document.getElementById('tabsWrap').innerHTML = `
+    <div class="tabs">
+      ${schools.map(s => `<div class="tab ${s===currentSchool?'active':''}" onclick="selectSchool('${escapeHtml(s).replace(/'/g,"\\'")}')">${escapeHtml(s)}</div>`).join('')}
+    </div>
+  `;
+}
+
+function selectSchool(s){
+  currentSchool = s;
+  renderTabs();
+  renderGrid();
+}
+
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('emptyTip');
+  const list = allProducts.filter(p => !currentSchool || p.school === currentSchool);
+  if(!list.length){
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    empty.textContent = '这家店铺还没有上架商品';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.innerHTML = list.map(p => `
+    <a class="card" href="/product.html?shop=${encodeURIComponent(shopId)}&id=${encodeURIComponent(p.id)}">
+      <div class="thumb" style="${p.images && p.images[0] ? `background-image:url('${p.images[0]}')` : ''}"></div>
+      <div class="info">
+        <div class="name">${escapeHtml(p.name)}</div>
+        <div class="price">${p.price ? '¥' + escapeHtml(p.price) : '面议'}</div>
+      </div>
+    </a>
+  `).join('');
+}
+
+function copyText(t){
+  navigator.clipboard && navigator.clipboard.writeText(t).then(()=>alert('已复制微信号：' + t)).catch(()=>alert('微信号：' + t));
+}
+
+load();
+</script>
+</body>
+</html>

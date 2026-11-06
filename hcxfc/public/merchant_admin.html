@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>商家后台 - 校服之家</title>
+<style>
+  :root{--primary:#c1592f;--primary-dark:#9e4524;--primary-tint:#f3e3d6;--bg:#f8f1e6;--card:#fff;--text:#2b231c;--muted:#8a7a68;--border:#ebdcc8;--price:#9e4524;--navy:#27415f;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);padding-bottom:40px;}
+  .topbar{background:#fff;border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+  .topbar h1{font-size:16px;margin:0;flex:1;}
+  .topbar a.view-link{font-size:12.5px;color:var(--primary);text-decoration:none;margin-right:4px;}
+  .logout{font-size:13px;color:var(--muted);text-decoration:none;}
+  .container{max-width:640px;margin:0 auto;padding:16px;}
+  .card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+  .card h2{font-size:14px;margin:0 0 14px;font-weight:600;}
+  label{display:block;font-size:12.5px;color:var(--muted);margin:10px 0 5px;}
+  input,textarea,select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;outline:none;font-family:inherit;}
+  input:focus,textarea:focus,select:focus{border-color:var(--primary);}
+  textarea{resize:vertical;min-height:60px;}
+  .btn{padding:10px 18px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;}
+  .btn-ghost{background:#fff;color:var(--primary);border:1px solid var(--primary);}
+  .btn-danger{background:#fff;color:#d92b2b;border:1px solid #d92b2b;}
+  .btn-sm{padding:6px 12px;font-size:12.5px;}
+  .row{display:flex;gap:10px;}
+  .row>*{flex:1;}
+  .shop-save-row{margin-top:14px;display:flex;align-items:center;gap:10px;}
+  .save-msg{font-size:12.5px;color:#07c160;}
+
+  .banner-upload{width:100%;aspect-ratio:3/1;border-radius:10px;border:1px dashed var(--border);background:#f1ece6 center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;cursor:pointer;margin-top:6px;position:relative;overflow:hidden;}
+  .banner-upload .hint{background:rgba(0,0,0,.45);color:#fff;padding:4px 10px;border-radius:6px;font-size:11.5px;position:absolute;bottom:8px;}
+
+  .product-list h2{display:flex;justify-content:space-between;align-items:center;}
+  .product-item{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);}
+  .product-item:last-child{border-bottom:none;}
+  .product-item .thumb{width:60px;height:60px;border-radius:8px;background:#f1ece6 center/cover no-repeat;flex-shrink:0;}
+  .product-item .body{flex:1;min-width:0;}
+  .product-item .name{font-size:13.5px;font-weight:600;margin-bottom:3px;}
+  .product-item .tags{font-size:11.5px;color:var(--muted);margin-bottom:3px;}
+  .product-item .price{font-size:13px;color:var(--price);font-weight:700;}
+  .product-item .off-badge{display:inline-block;font-size:11px;color:#fff;background:#9ca3af;padding:1px 6px;border-radius:4px;margin-left:6px;}
+  .product-item .actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+  .empty{text-align:center;color:var(--muted);padding:30px 0;font-size:13.5px;}
+
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:30;align-items:center;justify-content:center;padding:16px;}
+  .modal-bg.show{display:flex;}
+  .modal{background:#fff;border-radius:14px;padding:20px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;}
+  .modal h3{margin:0 0 4px;font-size:16px;}
+  .modal-actions{display:flex;gap:10px;margin-top:18px;}
+  .modal-actions .btn{flex:1;}
+
+  .size-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+  .size-tag{background:var(--primary-tint);color:var(--primary-dark);font-size:12px;padding:4px 10px;border-radius:14px;display:flex;align-items:center;gap:4px;}
+  .size-tag span{cursor:pointer;color:#9ca3af;}
+
+  .img-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+  .img-item{position:relative;width:70px;height:70px;border-radius:8px;overflow:hidden;background:#f1ece6;}
+  .img-item img{width:100%;height:100%;object-fit:cover;display:block;}
+  .img-item .del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;line-height:1;cursor:pointer;}
+  .img-add{width:70px;height:70px;border:1px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:24px;cursor:pointer;flex-shrink:0;}
+  .img-hint{font-size:11.5px;color:var(--muted);margin-top:4px;}
+  .season-switch{display:flex;background:#f1ece6;border-radius:8px;padding:3px;margin-top:6px;}
+  .season-switch div{flex:1;text-align:center;padding:8px 0;border-radius:6px;font-size:13px;color:var(--muted);cursor:pointer;}
+  .season-switch div.active{background:#fff;color:var(--primary);font-weight:600;}
+
+  .status-bar{padding:12px 16px;font-size:13px;line-height:1.6;border-bottom:1px solid var(--border);}
+  .status-bar.ok{background:#eaf1fb;color:var(--navy);}
+  .status-bar.warn{background:#f3e3d6;color:var(--primary-dark);}
+  .status-bar.danger{background:#fdecea;color:#c0392b;}
+  .status-bar b{font-weight:700;}
+  .status-bar .close-account{float:right;background:none;border:1px solid currentColor;color:inherit;border-radius:6px;padding:3px 9px;font-size:12px;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1 id="shopTitle">商家后台</h1>
+  <a class="view-link" id="viewShopLink" href="#" target="_blank">预览店铺 ›</a>
+  <a class="logout" href="javascript:logout()">退出登录</a>
+</div>
+
+<div id="statusBar"></div>
+
+<div class="container">
+  <div class="card">
+    <h2>店铺信息</h2>
+
+    <label>店招（店铺头图，建议宽图）</label>
+    <div class="banner-upload" id="bannerUpload" onclick="document.getElementById('bannerFileInput').click()">
+      <span class="hint">点击上传店招图</span>
+    </div>
+    <input type="file" id="bannerFileInput" accept="image/*" style="display:none" onchange="uploadBanner(event)">
+
+    <label>店铺名称</label>
+    <input id="shopName" type="text" maxlength="30">
+
+    <label>店铺简介</label>
+    <textarea id="intro" maxlength="300" placeholder="一句话介绍你的店铺，比如经营多少年、主营哪些学校的校服"></textarea>
+
+    <label>店铺地址（方便家长到店取货/核实）</label>
+    <input id="address" type="text" maxlength="120" placeholder="例如：衡水市桃城区XX路XX号">
+
+    <label>微信号（买家联系用）</label>
+    <input id="contactWechat" type="text" maxlength="60">
+    <label>联系电话</label>
+    <input id="contactPhone" type="tel" maxlength="20">
+
+    <div class="shop-save-row">
+      <button class="btn" onclick="saveShop()">保存店铺信息</button>
+      <span class="save-msg" id="shopSaveMsg"></span>
+    </div>
+  </div>
+
+  <div class="card product-list">
+    <h2>
+      商品管理
+      <button class="btn btn-sm" onclick="openProductModal()">+ 添加商品</button>
+    </h2>
+    <div id="productList"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="productModalBg">
+  <div class="modal">
+    <h3 id="modalTitle">添加商品</h3>
+    <input type="hidden" id="editingId">
+
+    <label>所属学校（作为店内分类，比如"衡水中学"）</label>
+    <input id="pSchool" type="text" placeholder="例如：衡水中学" maxlength="40">
+
+    <label>季节</label>
+    <div class="season-switch">
+      <div id="seasonWinter" class="active" onclick="setSeason('冬季款')">冬季款</div>
+      <div id="seasonSummer" onclick="setSeason('夏季款')">夏季款</div>
+    </div>
+    <input type="hidden" id="pSeason" value="冬季款">
+
+    <label>商品名称</label>
+    <input id="pName" type="text" placeholder="例如：秋冬运动外套" maxlength="60">
+
+    <label>价格（元，留空则显示"面议"）</label>
+    <input id="pPrice" type="text" placeholder="例如：168" maxlength="20">
+
+    <label>可选尺码（输入后按回车添加，例如 150 / 160 / 170）</label>
+    <input id="pSizeInput" type="text" placeholder="输入尺码后按回车">
+    <div class="size-tags" id="pSizeTags"></div>
+
+    <label>商品主图（固定4张，类似详情页主图）</label>
+    <div class="img-list" id="imgList">
+      <div class="img-add" onclick="document.getElementById('fileInput').click()">+</div>
+    </div>
+    <div class="img-hint">最多4张，建议方图，会自动压缩</div>
+    <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="uploadImage(event)">
+
+    <label>商品说明</label>
+    <textarea id="pDesc" maxlength="300" placeholder="面料、版型、注意事项等"></textarea>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeProductModal()">取消</button>
+      <button class="btn" onclick="saveProduct()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('hcxfc_token');
+if(!token){ location.href = '/merchant_login.html'; }
+
+function authHeaders(json){
+  const h = {'Authorization': 'Bearer ' + token};
+  if(json) h['Content-Type'] = 'application/json';
+  return h;
+}
+
+function logout(){
+  localStorage.removeItem('hcxfc_token');
+  localStorage.removeItem('hcxfc_role');
+  location.href = '/merchant_login.html';
+}
+
+async function apiFetch(url, opts){
+  const r = await fetch(url, opts);
+  if(r.status === 401){ logout(); throw new Error('未登录'); }
+  return r;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+let currentBanner = '';
+
+// ---- 店铺信息 ----
+async function loadShop(){
+  const r = await apiFetch('/api/me', {headers: authHeaders()});
+  const d = await r.json();
+  if(!d.ok) return;
+  if(d.role === 'admin'){ location.href = '/admin.html'; return; }
+  document.getElementById('shopTitle').textContent = d.shopName || '商家后台';
+  document.getElementById('viewShopLink').href = '/shop.html?shop=' + d.shopId;
+  document.getElementById('shopName').value = d.shopName || '';
+  document.getElementById('intro').value = d.intro || '';
+  document.getElementById('address').value = d.address || '';
+  document.getElementById('contactWechat').value = d.contactWechat || '';
+  document.getElementById('contactPhone').value = d.contactPhone || '';
+  currentBanner = d.banner || '';
+  renderBanner();
+  renderStatusBar(d.access);
+}
+
+function renderStatusBar(access){
+  const bar = document.getElementById('statusBar');
+  if(!access){ bar.innerHTML = ''; return; }
+  const texts = {
+    free_build: `<b>免费搭建期</b>，剩 ${access.daysLeft} 天。期间可以随意装修店铺、上传商品，店铺对外可见。想继续使用可联系平台付20元开通2周试用。`,
+    free_expired: `免费搭建期已到期，店铺<b>暂时下线</b>（家长看不到），数据会保留到到期后1个月。请联系平台付20元开通试用，或点击右侧注销店铺。`,
+    paid_trial: `<b>付费试用中</b>，剩 ${access.daysLeft} 天。到期前请联系平台正式开通，否则店铺会下线。`,
+    paid_trial_expired: `付费试用已到期，店铺<b>暂时下线</b>，数据会保留到到期后1个月。请联系平台正式开通，或点击右侧注销店铺。`,
+    active: `<b>已正式开通</b>，剩 ${access.daysLeft} 天，店铺正常对外展示。`,
+    active_expired: `开通已到期，店铺<b>暂时下线</b>，数据会保留到到期后1个月。请联系平台续费开通，或点击右侧注销店铺。`,
+    closed: `店铺已注销，数据将在注销后1个月内保留。`
+  };
+  const cls = {
+    free_build: 'ok', paid_trial: 'ok', active: 'ok',
+    free_expired: 'warn', paid_trial_expired: 'warn', active_expired: 'warn', closed: 'danger'
+  }[access.phase] || 'warn';
+  const showCloseBtn = access.phase !== 'closed';
+  bar.innerHTML = `<div class="status-bar ${cls}">${texts[access.phase] || ''}${showCloseBtn ? '<button class="close-account" onclick="closeAccount()">注销店铺</button>' : ''}</div>`;
+}
+
+async function closeAccount(){
+  if(!confirm('确定要注销店铺吗？注销后店铺立即下线，数据会保留1个月，期间可联系平台恢复；超过1个月后数据可能被清理。')) return;
+  const r = await apiFetch('/api/account/close', {method:'POST', headers: authHeaders()});
+  const d = await r.json();
+  if(d.ok){ loadShop(); } else alert(d.msg || '操作失败');
+}
+
+function renderBanner(){
+  const el = document.getElementById('bannerUpload');
+  if(currentBanner){
+    el.style.backgroundImage = `url('${currentBanner}')`;
+    el.querySelector('.hint').textContent = '点击更换店招图';
+  }else{
+    el.style.backgroundImage = '';
+    el.querySelector('.hint').textContent = '点击上传店招图';
+  }
+}
+
+async function uploadBanner(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  try{
+    const r = await apiFetch('/api/upload', {method:'POST', headers: authHeaders(), body: fd});
+    const d = await r.json();
+    if(d.ok){ currentBanner = d.url; renderBanner(); }
+    else alert(d.msg || '上传失败');
+  }catch(err){
+    alert('上传失败，请重试');
+  }
+  e.target.value = '';
+}
+
+async function saveShop(){
+  const body = {
+    shopName: document.getElementById('shopName').value.trim(),
+    intro: document.getElementById('intro').value.trim(),
+    address: document.getElementById('address').value.trim(),
+    contactWechat: document.getElementById('contactWechat').value.trim(),
+    contactPhone: document.getElementById('contactPhone').value.trim(),
+    banner: currentBanner
+  };
+  const r = await apiFetch('/api/shop', {method:'PUT', headers: authHeaders(true), body: JSON.stringify(body)});
+  const d = await r.json();
+  const msg = document.getElementById('shopSaveMsg');
+  if(d.ok){
+    msg.textContent = '已保存';
+    msg.style.color = '#07c160';
+    document.getElementById('shopTitle').textContent = body.shopName || '商家后台';
+    setTimeout(()=>msg.textContent='', 2000);
+  }else{
+    msg.textContent = d.msg || '保存失败';
+    msg.style.color = '#d92b2b';
+  }
+}
+
+// ---- 商品列表 ----
+let products = [];
+
+async function loadProducts(){
+  const r = await apiFetch('/api/my/products', {headers: authHeaders()});
+  const d = await r.json();
+  if(!d.ok) return;
+  products = d.products;
+  renderProducts();
+}
+
+function renderProducts(){
+  const list = document.getElementById('productList');
+  if(!products.length){
+    list.innerHTML = '<div class="empty">还没有商品，点右上角"+ 添加商品"开始上架</div>';
+    return;
+  }
+  list.innerHTML = products.map(p => `
+    <div class="product-item">
+      <div class="thumb" style="${p.images && p.images[0] ? `background-image:url('${p.images[0]}')` : ''}"></div>
+      <div class="body">
+        <div class="name">${escapeHtml(p.name)}${p.status==='off' ? '<span class="off-badge">已下架</span>' : ''}</div>
+        <div class="tags">${escapeHtml(p.school)} · ${escapeHtml(p.season)}</div>
+        <div class="price">${p.price ? '¥'+escapeHtml(p.price) : '面议'}</div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost btn-sm" onclick="editProduct('${p.id}')">编辑</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleStatus('${p.id}')">${p.status==='off' ? '上架' : '下架'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">删除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function toggleStatus(id){
+  const p = products.find(x => x.id === id);
+  if(!p) return;
+  const newStatus = p.status === 'off' ? 'active' : 'off';
+  const r = await apiFetch('/api/my/products/' + id, {method:'PUT', headers: authHeaders(true), body: JSON.stringify({status:newStatus})});
+  const d = await r.json();
+  if(d.ok){ p.status = newStatus; renderProducts(); }
+}
+
+async function deleteProduct(id){
+  if(!confirm('确定删除这个商品吗？')) return;
+  const r = await apiFetch('/api/my/products/' + id, {method:'DELETE', headers: authHeaders()});
+  const d = await r.json();
+  if(d.ok){ products = products.filter(p => p.id !== id); renderProducts(); }
+}
+
+// ---- 添加/编辑商品弹窗 ----
+let currentSizes = [];
+let currentImages = [];
+const MAX_IMAGES = 4;
+
+function setSeason(s){
+  document.getElementById('pSeason').value = s;
+  document.getElementById('seasonWinter').classList.toggle('active', s==='冬季款');
+  document.getElementById('seasonSummer').classList.toggle('active', s==='夏季款');
+}
+
+function openProductModal(){
+  document.getElementById('modalTitle').textContent = '添加商品';
+  document.getElementById('editingId').value = '';
+  document.getElementById('pSchool').value = '';
+  setSeason('冬季款');
+  document.getElementById('pName').value = '';
+  document.getElementById('pPrice').value = '';
+  document.getElementById('pDesc').value = '';
+  currentSizes = [];
+  currentImages = [];
+  renderSizeTags();
+  renderImgList();
+  document.getElementById('productModalBg').classList.add('show');
+}
+
+function editProduct(id){
+  const p = products.find(x => x.id === id);
+  if(!p) return;
+  document.getElementById('modalTitle').textContent = '编辑商品';
+  document.getElementById('editingId').value = id;
+  document.getElementById('pSchool').value = p.school;
+  setSeason(p.season);
+  document.getElementById('pName').value = p.name;
+  document.getElementById('pPrice').value = p.price;
+  document.getElementById('pDesc').value = p.desc;
+  currentSizes = (p.sizes || []).slice();
+  currentImages = (p.images || []).slice();
+  renderSizeTags();
+  renderImgList();
+  document.getElementById('productModalBg').classList.add('show');
+}
+
+function closeProductModal(){
+  document.getElementById('productModalBg').classList.remove('show');
+}
+
+document.getElementById('pSizeInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    const v = e.target.value.trim();
+    if(v && !currentSizes.includes(v)){ currentSizes.push(v); renderSizeTags(); }
+    e.target.value = '';
+  }
+});
+
+function renderSizeTags(){
+  document.getElementById('pSizeTags').innerHTML = currentSizes.map((s,i) => `
+    <div class="size-tag">${escapeHtml(s)} <span onclick="removeSize(${i})">×</span></div>
+  `).join('');
+}
+function removeSize(i){ currentSizes.splice(i,1); renderSizeTags(); }
+
+function renderImgList(){
+  const list = document.getElementById('imgList');
+  const imgs = currentImages.map((url,i) => `
+    <div class="img-item"><img src="${url}"><button class="del" onclick="removeImg(${i})">×</button></div>
+  `).join('');
+  list.innerHTML = imgs + (currentImages.length < MAX_IMAGES ? '<div class="img-add" onclick="document.getElementById(\'fileInput\').click()">+</div>' : '');
+}
+function removeImg(i){ currentImages.splice(i,1); renderImgList(); }
+
+async function uploadImage(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  if(currentImages.length >= MAX_IMAGES){ alert('最多上传' + MAX_IMAGES + '张主图'); e.target.value=''; return; }
+  const fd = new FormData();
+  fd.append('file', file);
+  try{
+    const r = await apiFetch('/api/upload', {method:'POST', headers: authHeaders(), body: fd});
+    const d = await r.json();
+    if(d.ok){ currentImages.push(d.url); renderImgList(); }
+    else alert(d.msg || '上传失败');
+  }catch(err){
+    alert('上传失败，请重试');
+  }
+  e.target.value = '';
+}
+
+async function saveProduct(){
+  const id = document.getElementById('editingId').value;
+  const body = {
+    school: document.getElementById('pSchool').value.trim(),
+    season: document.getElementById('pSeason').value,
+    name: document.getElementById('pName').value.trim(),
+    price: document.getElementById('pPrice').value.trim(),
+    sizes: currentSizes,
+    images: currentImages,
+    desc: document.getElementById('pDesc').value.trim()
+  };
+  if(!body.school || !body.name){ alert('学校和商品名称必填'); return; }
+
+  const url = id ? ('/api/my/products/' + id) : '/api/my/products';
+  const method = id ? 'PUT' : 'POST';
+  const r = await apiFetch(url, {method, headers: authHeaders(true), body: JSON.stringify(body)});
+  const d = await r.json();
+  if(d.ok){
+    closeProductModal();
+    loadProducts();
+  }else{
+    alert(d.msg || '保存失败');
+  }
+}
+
+loadShop();
+loadProducts();
+</script>
+</body>
+</html>
