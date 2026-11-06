@@ -122,8 +122,8 @@ function renderGrid(){
     <a class="card" href="/product.html?shop=${encodeURIComponent(shopId)}&id=${encodeURIComponent(p.id)}">
       <div class="thumb" style="${p.images && p.images[0] ? `background-image:url('${p.images[0]}')` : ''}"></div>
       <div class="info">
-        <div class="name">${escapeHtml(p.name)}</div>
-        <div class="price">${p.price ? '¥' + escapeHtml(p.price) : '面议'}</div>
+        <div class="name">${escapeHtml(p.name)}${p.category ? ` <span style="font-size:11px;color:var(--muted);font-weight:400;">· ${escapeHtml(p.category)}</span>` : ''}</div>
+        <div class="price">${p.price ? '¥' + escapeHtml(p.price) : '面议'}${p.shipping ? ' <span style="font-size:10.5px;color:#27415f;font-weight:600;">可邮寄</span>' : ''}</div>
       </div>
     </a>
   `).join('');

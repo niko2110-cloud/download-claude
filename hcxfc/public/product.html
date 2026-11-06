@@ -45,6 +45,16 @@
   .contact-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;}
   .copy-btn{font-size:12px;color:var(--primary);border:1px solid var(--primary);border-radius:6px;padding:4px 10px;background:none;text-decoration:none;}
   .close-modal{display:block;width:100%;text-align:center;margin-top:14px;color:var(--muted);font-size:13px;background:none;border:none;padding:8px;}
+  .ship-note{background:var(--primary-tint);color:var(--primary-dark);font-size:12.5px;padding:8px 10px;border-radius:8px;margin-top:10px;}
+  .bottom-bar.has3 .btn{font-size:12.5px;padding:13px 2px;}
+  .order-modal label{display:block;font-size:12.5px;color:var(--muted);margin:12px 0 5px;}
+  .order-modal input,.order-modal textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;}
+  .order-modal textarea{resize:vertical;min-height:50px;}
+  .size-pick{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+  .size-pick .chip{border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;}
+  .size-pick .chip.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .shot-upload{width:100px;height:100px;border:1px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;cursor:pointer;margin-top:6px;background:#f1ece6 center/cover no-repeat;position:relative;overflow:hidden;text-align:center;}
+  .order-msg{font-size:12.5px;color:#e4572e;margin-top:10px;min-height:16px;}
 </style>
 </head>
 <body>
@@ -98,12 +108,14 @@ function render(p){
         <div class="tag-row">
           <span class="tag">${escapeHtml(p.school)}</span>
           <span class="tag">${escapeHtml(p.season)}</span>
+          ${p.category ? `<span class="tag">${escapeHtml(p.category)}</span>` : ''}
         </div>
         ${p.sizes && p.sizes.length ? `
           <div class="section-label">可选尺码</div>
           <div class="size-row">${p.sizes.map(s => `<span class="size-chip">${escapeHtml(s)}</span>`).join('')}</div>
         ` : ''}
         ${p.desc ? `<div class="section-label" style="margin-top:10px;">商品说明</div><div class="desc">${escapeHtml(p.desc)}</div>` : ''}
+        ${p.shipping ? `<div class="ship-note">📦 支持邮寄${p.shippingNote ? '：' + escapeHtml(p.shippingNote) : ''}</div>` : ''}
       </div>
       <div class="shop-card">
         <div class="avatar">${escapeHtml((p.shopName||'店').slice(0,1))}</div>
@@ -111,9 +123,10 @@ function render(p){
         <a class="link" href="/shop.html?shop=${encodeURIComponent(p.shopId)}">查看店铺 ›</a>
       </div>
     </div>
-    <div class="bottom-bar">
+    <div class="bottom-bar ${p.shipping ? 'has3' : ''}">
       <button class="btn btn-wechat" onclick="openContact()">微信联系</button>
       <button class="btn btn-phone" onclick="openContact()">电话联系</button>
+      ${p.shipping ? `<button class="btn" style="background:var(--navy);color:#fff;" onclick="openOrderModal()">微信付款·寄件下单</button>` : ''}
     </div>
     <div class="contact-modal-bg" id="modalBg" onclick="closeModal(event)">
       <div class="contact-modal">
@@ -122,6 +135,41 @@ function render(p){
         ${p.contactPhone ? `<div class="contact-item"><span>电话：${escapeHtml(p.contactPhone)}</span><a class="copy-btn" href="tel:${escapeHtml(p.contactPhone)}">拨打</a></div>` : ''}
         ${(!p.contactWechat && !p.contactPhone) ? `<div class="contact-item" style="border-bottom:none;color:#6b7280;">商家暂未留下联系方式</div>` : ''}
         <button class="close-modal" onclick="closeModal()">关闭</button>
+      </div>
+    </div>
+    <div class="contact-modal-bg" id="orderModalBg" onclick="closeOrderModal(event)">
+      <div class="contact-modal order-modal">
+        <h3>微信付款 · 寄件下单</h3>
+        <div style="font-size:12.5px;color:var(--muted);line-height:1.6;">
+          不支持在线支付，流程是：加商家微信转账 → 截图上传到这里 → 留好收货地址 → 商家核实到账后给你发货。
+        </div>
+        ${p.contactWechat ? `<div class="contact-item"><span>商家微信号：${escapeHtml(p.contactWechat)}</span><button class="copy-btn" onclick="copyText('${escapeHtml(p.contactWechat)}')">复制</button></div>` : ''}
+
+        ${p.sizes && p.sizes.length ? `
+          <label>选择尺码</label>
+          <div class="size-pick" id="orderSizePick">
+            ${p.sizes.map(s => `<div class="chip" onclick="pickOrderSize(this,'${escapeHtml(s).replace(/'/g,"\\'")}')">${escapeHtml(s)}</div>`).join('')}
+          </div>
+        ` : ''}
+
+        <label>联系方式（手机号/微信号，商家靠这个联系你）</label>
+        <input id="orderPhone" type="text" placeholder="请输入手机号或微信号" maxlength="30">
+
+        <label>收货地址</label>
+        <textarea id="orderAddress" placeholder="省市区 + 详细地址 + 收件人姓名" maxlength="200"></textarea>
+
+        <label>备注（可不填）</label>
+        <input id="orderNote" type="text" placeholder="有其他要求可以写在这里" maxlength="200">
+
+        <label>上传微信付款截图</label>
+        <div class="shot-upload" id="shotUpload" onclick="document.getElementById('shotInput').click()">点击上传截图</div>
+        <input type="file" id="shotInput" accept="image/*" style="display:none" onchange="uploadShot(event)">
+
+        <div class="order-msg" id="orderMsg"></div>
+        <div class="modal-actions" style="display:flex;gap:10px;margin-top:14px;">
+          <button class="close-modal" style="flex:1;border:1px solid var(--border);border-radius:8px;" onclick="closeOrderModal()">取消</button>
+          <button class="btn" style="flex:1;" onclick="submitOrder()">提交订单</button>
+        </div>
       </div>
     </div>
   `;
@@ -141,6 +189,79 @@ function openContact(){
 function closeModal(e){
   if(e && e.target.id !== 'modalBg') return;
   document.getElementById('modalBg').classList.remove('show');
+}
+
+// ---- 微信付款·寄件下单 ----
+let orderSize = '';
+let orderScreenshot = '';
+
+function openOrderModal(){
+  orderSize = '';
+  orderScreenshot = '';
+  document.getElementById('orderModalBg').classList.add('show');
+}
+function closeOrderModal(e){
+  if(e && e.target.id !== 'orderModalBg') return;
+  document.getElementById('orderModalBg').classList.remove('show');
+}
+function pickOrderSize(el, s){
+  orderSize = s;
+  document.querySelectorAll('#orderSizePick .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+async function uploadShot(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  const msg = document.getElementById('orderMsg');
+  msg.style.color = 'var(--muted)';
+  msg.textContent = '上传中...';
+  try{
+    const r = await fetch('/api/public-upload', {method:'POST', body: fd});
+    const d = await r.json();
+    if(d.ok){
+      orderScreenshot = d.url;
+      document.getElementById('shotUpload').style.backgroundImage = `url('${d.url}')`;
+      document.getElementById('shotUpload').textContent = '';
+      msg.textContent = '截图已上传';
+      msg.style.color = '#07c160';
+    }else{
+      msg.textContent = d.msg || '上传失败';
+      msg.style.color = '#e4572e';
+    }
+  }catch(err){
+    msg.textContent = '上传失败，请重试';
+    msg.style.color = '#e4572e';
+  }
+  e.target.value = '';
+}
+async function submitOrder(){
+  const phone = document.getElementById('orderPhone').value.trim();
+  const address = document.getElementById('orderAddress').value.trim();
+  const note = document.getElementById('orderNote').value.trim();
+  const msg = document.getElementById('orderMsg');
+  if(!phone){ msg.textContent = '请留下联系方式'; msg.style.color = '#e4572e'; return; }
+  if(!address){ msg.textContent = '请填写收货地址'; msg.style.color = '#e4572e'; return; }
+  if(!orderScreenshot){ msg.textContent = '请先上传微信付款截图'; msg.style.color = '#e4572e'; return; }
+  try{
+    const r = await fetch('/api/order', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ shopId, productId: id, size: orderSize, contactPhone: phone, address, note, screenshot: orderScreenshot })
+    });
+    const d = await r.json();
+    if(d.ok){
+      msg.style.color = '#07c160';
+      msg.textContent = '提交成功，商家核实到账后会联系你发货';
+      setTimeout(() => closeOrderModal(), 1500);
+    }else{
+      msg.textContent = d.msg || '提交失败';
+      msg.style.color = '#e4572e';
+    }
+  }catch(err){
+    msg.textContent = '网络错误，请重试';
+    msg.style.color = '#e4572e';
+  }
 }
 function copyText(t){
   navigator.clipboard && navigator.clipboard.writeText(t).then(()=>alert('已复制：' + t)).catch(()=>alert('复制失败，请手动复制：' + t));

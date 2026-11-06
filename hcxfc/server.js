@@ -96,6 +96,10 @@ function genProductId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
+function genOrderId() {
+  return 'o_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
 // ---------- 试用/订阅状态机 ----------
 // 流程：注册即进入"免费搭建期"(3天) → 商家付20元后由管理员标记"付费试用"(14天)
 // → 到期后由管理员"正式开通"(设到期日) 或商家"注销"；任何到期状态都有30天数据宽限期，
@@ -139,9 +143,10 @@ function parseShopData(row) {
   try {
     const d = JSON.parse(row.shop_data || '{}');
     if (!Array.isArray(d.products)) d.products = [];
+    if (!Array.isArray(d.orders)) d.orders = [];
     return d;
   } catch (e) {
-    return { products: [] };
+    return { products: [], orders: [] };
   }
 }
 
@@ -166,12 +171,15 @@ function publicProduct(row, p) {
     shopName: shop.shopName,
     school: p.school || '',
     season: p.season || '',
+    category: p.category || '',
     name: p.name || '',
     price: p.price || '',
     sizes: Array.isArray(p.sizes) ? p.sizes : [],
     images: Array.isArray(p.images) ? p.images : [],
     desc: p.desc || '',
     status: p.status || 'active',
+    shipping: !!p.shipping,
+    shippingNote: p.shippingNote || '',
     contactWechat: shop.contactWechat,
     contactPhone: shop.contactPhone
   };
@@ -293,18 +301,21 @@ app.get('/api/my/products', auth, (req, res) => {
 
 app.post('/api/my/products', auth, (req, res) => {
   const d = parseShopData(req.merchant);
-  const { school, season, name, price, sizes, images, desc } = req.body || {};
+  const { school, season, category, name, price, sizes, images, desc, shipping, shippingNote } = req.body || {};
   if (!school || !name) return res.status(400).json({ ok: false, msg: '学校和商品名必填' });
   const p = {
     id: genProductId(),
     school: String(school).slice(0, 40),
     season: season === '夏季款' ? '夏季款' : '冬季款',
+    category: category ? String(category).slice(0, 20) : '',
     name: String(name).slice(0, 60),
     price: price !== undefined ? String(price).slice(0, 20) : '',
     sizes: Array.isArray(sizes) ? sizes.slice(0, 20).map(s => String(s).slice(0, 10)) : [],
     images: Array.isArray(images) ? images.slice(0, 4) : [],
     desc: desc ? String(desc).slice(0, 300) : '',
     status: 'active',
+    shipping: !!shipping,
+    shippingNote: shippingNote ? String(shippingNote).slice(0, 100) : '',
     createdAt: Date.now()
   };
   d.products.unshift(p);
@@ -317,15 +328,18 @@ app.put('/api/my/products/:id', auth, (req, res) => {
   const idx = d.products.findIndex(p => p.id === req.params.id);
   if (idx === -1) return res.status(404).json({ ok: false, msg: '商品不存在' });
   const p = d.products[idx];
-  const { school, season, name, price, sizes, images, desc, status } = req.body || {};
+  const { school, season, category, name, price, sizes, images, desc, status, shipping, shippingNote } = req.body || {};
   if (school !== undefined) p.school = String(school).slice(0, 40);
   if (season !== undefined) p.season = season === '夏季款' ? '夏季款' : '冬季款';
+  if (category !== undefined) p.category = String(category).slice(0, 20);
   if (name !== undefined) p.name = String(name).slice(0, 60);
   if (price !== undefined) p.price = String(price).slice(0, 20);
   if (sizes !== undefined) p.sizes = Array.isArray(sizes) ? sizes.slice(0, 20).map(s => String(s).slice(0, 10)) : [];
   if (images !== undefined) p.images = Array.isArray(images) ? images.slice(0, 4) : [];
   if (desc !== undefined) p.desc = String(desc).slice(0, 300);
   if (status !== undefined) p.status = status === 'off' ? 'off' : 'active';
+  if (shipping !== undefined) p.shipping = !!shipping;
+  if (shippingNote !== undefined) p.shippingNote = String(shippingNote).slice(0, 100);
   db.prepare('UPDATE merchants SET shop_data = ? WHERE id = ?').run(JSON.stringify(d), req.merchant.id);
   res.json({ ok: true, product: p });
 });
@@ -337,6 +351,23 @@ app.delete('/api/my/products/:id', auth, (req, res) => {
   if (d.products.length === before) return res.status(404).json({ ok: false, msg: '商品不存在' });
   db.prepare('UPDATE merchants SET shop_data = ? WHERE id = ?').run(JSON.stringify(d), req.merchant.id);
   res.json({ ok: true });
+});
+
+// ===== 商家自己：订单（微信付款截图下单）=====
+app.get('/api/my/orders', auth, (req, res) => {
+  const d = parseShopData(req.merchant);
+  res.json({ ok: true, orders: d.orders });
+});
+
+app.put('/api/my/orders/:id/status', auth, (req, res) => {
+  const d = parseShopData(req.merchant);
+  const o = d.orders.find(x => x.id === req.params.id);
+  if (!o) return res.status(404).json({ ok: false, msg: '订单不存在' });
+  const status = (req.body || {}).status === 'shipped' ? 'shipped' : 'pending';
+  o.status = status;
+  o.shippedAt = status === 'shipped' ? Date.now() : null;
+  db.prepare('UPDATE merchants SET shop_data = ? WHERE id = ?').run(JSON.stringify(d), req.merchant.id);
+  res.json({ ok: true, order: o });
 });
 
 // ===== 图片上传 =====
@@ -356,9 +387,60 @@ app.post('/api/upload', auth, upload.single('file'), async (req, res) => {
   }
 });
 
+// 买家上传微信付款截图用（下单时不要求登录，走独立的公开上传接口，限制同/api/upload）
+app.post('/api/public-upload', upload.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ ok: false, msg: '没有文件' });
+  try {
+    const filename = 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.webp';
+    const outPath = path.join(UPLOAD_DIR, filename);
+    await sharp(req.file.buffer)
+      .resize({ width: 1000, height: 1000, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 85 })
+      .toFile(outPath);
+    res.json({ ok: true, url: '/uploads/' + filename });
+  } catch (e) {
+    res.status(500).json({ ok: false, msg: '图片处理失败' });
+  }
+});
+
 // ===== 前台公开接口 =====
 // 注意：刻意不提供"跨商家汇总浏览"的接口（比如全平台按学校列出所有商家），
 // 每个店铺都是独立入口，避免同校多商家被摆在一起比价竞争。
+
+// 买家下单：留联系方式+收货地址+选尺码+微信付款截图，不走在线支付，
+// 商家在后台"订单"里看到截图自行核实到账后发货。
+app.post('/api/order', (req, res) => {
+  const { shopId, productId, size, contactPhone, address, note, screenshot } = req.body || {};
+  if (!shopId || !productId) return res.status(400).json({ ok: false, msg: '参数缺失' });
+  if (!contactPhone || !String(contactPhone).trim()) return res.status(400).json({ ok: false, msg: '请留下联系方式' });
+  if (!address || !String(address).trim()) return res.status(400).json({ ok: false, msg: '请填写收货地址' });
+  if (!screenshot) return res.status(400).json({ ok: false, msg: '请上传微信付款截图' });
+
+  const row = db.prepare("SELECT * FROM merchants WHERE shop_id = ? AND role = 'merchant'").get(shopId);
+  if (!row) return res.status(404).json({ ok: false, msg: '店铺不存在' });
+  if (!computeAccessState(row).accessible) return res.status(403).json({ ok: false, msg: '该店铺已下线，暂不可下单' });
+
+  const d = parseShopData(row);
+  const p = d.products.find(x => x.id === productId);
+  if (!p) return res.status(404).json({ ok: false, msg: '商品不存在' });
+
+  const order = {
+    id: genOrderId(),
+    productId: p.id,
+    productName: p.name || '',
+    productImage: (p.images && p.images[0]) || '',
+    size: size ? String(size).slice(0, 10) : '',
+    contactPhone: String(contactPhone).trim().slice(0, 30),
+    address: String(address).trim().slice(0, 200),
+    note: note ? String(note).trim().slice(0, 200) : '',
+    screenshot: String(screenshot).slice(0, 300),
+    status: 'pending',
+    createdAt: Date.now()
+  };
+  d.orders.unshift(order);
+  db.prepare('UPDATE merchants SET shop_data = ? WHERE id = ?').run(JSON.stringify(d), row.id);
+  res.json({ ok: true, orderId: order.id });
+});
 
 app.get('/api/product/:shopId/:id', (req, res) => {
   const row = db.prepare("SELECT * FROM merchants WHERE shop_id = ? AND role = 'merchant'").get(req.params.shopId);
