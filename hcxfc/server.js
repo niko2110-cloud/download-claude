@@ -192,6 +192,8 @@ function publicProduct(row, p) {
     status: p.status || 'active',
     shipping: !!p.shipping,
     shippingNote: p.shippingNote || '',
+    views: p.views || 0,
+    createdAt: p.createdAt || 0,
     contactWechat: shop.contactWechat,
     contactPhone: shop.contactPhone
   };
@@ -338,6 +340,7 @@ app.post('/api/my/products', auth, (req, res) => {
     status: 'active',
     shipping: !!shipping,
     shippingNote: shippingNote ? String(shippingNote).slice(0, 100) : '',
+    views: 0,
     createdAt: Date.now()
   };
   d.products.unshift(p);
@@ -507,6 +510,8 @@ app.get('/api/product/:shopId/:id', (req, res) => {
   const d = parseShopData(row);
   const p = d.products.find(x => x.id === req.params.id);
   if (!p) return res.status(404).json({ ok: false, msg: '商品不存在' });
+  p.views = (p.views || 0) + 1;
+  db.prepare('UPDATE merchants SET shop_data = ? WHERE id = ?').run(JSON.stringify(d), row.id);
   res.json({ ok: true, product: publicProduct(row, p) });
 });
 

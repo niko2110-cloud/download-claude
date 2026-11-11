@@ -25,9 +25,31 @@
   .tab{padding:12px 16px;font-size:13.5px;color:var(--muted);white-space:nowrap;cursor:pointer;border-bottom:2px solid transparent;flex-shrink:0;}
   .tab.active{color:var(--primary);font-weight:700;border-bottom-color:var(--primary);}
 
-  .cat-tabs{display:flex;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--border);padding:8px 10px;gap:8px;position:sticky;top:0;z-index:9;}
-  .cat-chip{padding:6px 14px;font-size:12.5px;color:var(--text);background:var(--bg);border-radius:16px;white-space:nowrap;cursor:pointer;flex-shrink:0;border:1px solid var(--border);}
-  .cat-chip.active{color:#fff;background:var(--primary);border-color:var(--primary);font-weight:600;}
+  .search-bar{position:sticky;top:0;z-index:11;background:var(--card);padding:10px 14px;border-bottom:1px solid var(--border);}
+  .search-box{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:9px 14px;}
+  .search-box input{flex:1;border:none;background:none;outline:none;font-size:13.5px;color:var(--text);min-width:0;}
+  .search-box input::placeholder{color:var(--muted);}
+  .search-box .icon{color:var(--muted);font-size:14px;flex-shrink:0;}
+
+  .filter-bar{display:flex;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:9;}
+  .filter-item{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:12px 0;font-size:13.5px;color:var(--text);cursor:pointer;position:relative;}
+  .filter-item + .filter-item::before{content:'';position:absolute;left:0;top:25%;bottom:25%;width:1px;background:var(--border);}
+  .filter-item.active{color:var(--primary);font-weight:700;}
+  .filter-arrows{display:inline-flex;flex-direction:column;line-height:0;margin-left:1px;}
+  .filter-arrows span{font-size:8px;color:var(--border);}
+  .filter-arrows span.on{color:var(--primary);}
+
+  .sheet-mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:30;}
+  .sheet-mask.show{display:block;}
+  .sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-radius:16px 16px 0 0;z-index:31;transform:translateY(100%);transition:transform .25s ease;max-height:70vh;display:flex;flex-direction:column;}
+  .sheet.show{transform:translateY(0);}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .sheet-head .cancel{color:var(--muted);font-size:14px;}
+  .sheet-head .ttl{font-size:15px;font-weight:700;}
+  .sheet-head .confirm{color:var(--primary);font-weight:700;font-size:14px;}
+  .sheet-body{overflow-y:auto;padding:4px 0;}
+  .sheet-opt{padding:14px 16px;text-align:center;font-size:14px;color:var(--text);}
+  .sheet-opt.active{color:var(--primary);font-weight:700;background:var(--primary-tint);}
 
   .shop-photos{padding:0 16px 4px;}
   .shop-photos .ttl{font-size:12.5px;color:var(--muted);margin:10px 0 8px;font-weight:600;}
@@ -38,11 +60,21 @@
 
   .container{max-width:560px;margin:0 auto;padding:16px;}
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;color:var(--text);position:relative;}
+  .card .badge{position:absolute;left:0;top:10px;background:var(--navy);color:#fff;font-size:11px;padding:3px 10px 3px 8px;border-radius:0 10px 10px 0;z-index:1;max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .card .thumb-link{display:block;}
   .card .thumb{width:100%;aspect-ratio:1/1;background:#f1ece6 center/cover no-repeat;display:block;}
-  .card .info{padding:10px 10px 12px;}
-  .card .name{font-size:13.5px;font-weight:600;margin:0 0 4px;line-height:1.3;}
-  .card .price{font-size:14px;color:var(--price);font-weight:700;}
+  .card .info{padding:10px 10px 4px;}
+  .card .name{font-size:13.5px;font-weight:700;margin:0 0 6px;line-height:1.35;min-height:2.7em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+  .card .spec{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:4px;margin-bottom:3px;}
+  .card .spec .dot{width:4px;height:4px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+  .card .price-row{display:flex;align-items:baseline;justify-content:space-between;margin-top:4px;}
+  .card .price{font-size:14.5px;color:var(--price);font-weight:700;}
+  .card .views{font-size:10.5px;color:var(--muted);}
+  .card .btn-row{display:flex;gap:0;margin-top:10px;}
+  .card .pill-btn{flex:1;border:none;text-align:center;padding:9px 0;font-size:12.5px;color:#fff;cursor:pointer;text-decoration:none;}
+  .card .pill-detail{background:linear-gradient(90deg,#4b4fd6,#5a6fe0);border-radius:10px 0 0 10px;}
+  .card .pill-share{background:linear-gradient(90deg,#1fb08a,#28c79a);border-radius:0 10px 10px 0;}
   .empty{text-align:center;color:var(--muted);padding:60px 20px;font-size:14px;}
   .share-btn{position:fixed;right:14px;top:14px;z-index:20;background:rgba(0,0,0,.45);color:#fff;border:none;border-radius:20px;padding:8px 14px;font-size:12.5px;display:flex;align-items:center;gap:4px;cursor:pointer;}
   .share-toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:rgba(0,0,0,.75);color:#fff;font-size:13px;padding:9px 18px;border-radius:20px;z-index:50;display:none;}
@@ -55,12 +87,32 @@
 <div id="shopHead"></div>
 <div id="shopPhotosWrap"></div>
 <div id="tabsWrap"></div>
-<div id="catTabsWrap"></div>
+<div class="search-bar">
+  <div class="search-box">
+    <span class="icon">🔍</span>
+    <input id="searchInput" type="text" placeholder="搜索商品名称/学校/分类" oninput="onSearchInput()">
+  </div>
+</div>
+<div class="filter-bar">
+  <div class="filter-item" id="filterCat" onclick="openCatSheet()"><span>分类</span><span class="filter-arrows"><span>▲</span><span>▼</span></span></div>
+  <div class="filter-item" id="filterViews" onclick="toggleSort('views')"><span>浏览量</span><span class="filter-arrows" id="arrowViews"><span>▲</span><span>▼</span></span></div>
+  <div class="filter-item" id="filterNew" onclick="toggleSort('new')"><span>新品</span><span class="filter-arrows" id="arrowNew"><span>▲</span><span>▼</span></span></div>
+</div>
 <div class="container">
   <div id="grid" class="grid"></div>
   <div id="emptyTip" class="empty" style="display:none;">这家店铺还没有上架商品</div>
 </div>
 <div class="site-footer">冀ICP备2026012724号</div>
+
+<div class="sheet-mask" id="catSheetMask" onclick="closeCatSheet()"></div>
+<div class="sheet" id="catSheet">
+  <div class="sheet-head">
+    <span class="cancel" onclick="closeCatSheet()">取消</span>
+    <span class="ttl">请选择分类</span>
+    <span class="confirm" onclick="confirmCatSheet()">确定</span>
+  </div>
+  <div class="sheet-body" id="catSheetBody"></div>
+</div>
 
 <script>
 const params = new URLSearchParams(location.search);
@@ -70,6 +122,10 @@ let schools = [];
 let currentSchool = '';
 let categories = [];
 let currentCategory = '';
+let pendingCategory = '';
+let searchQuery = '';
+let sortKey = null;   // null | 'views' | 'new'
+let sortDir = 'desc'; // 'desc' | 'asc'
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -138,7 +194,6 @@ async function load(){
     categories = d.categories || [];
     currentCategory = '';
     renderTabs();
-    renderCatTabs();
     renderGrid();
   }catch(e){
     document.getElementById('emptyTip').style.display='block';
@@ -160,42 +215,115 @@ function selectSchool(s){
   renderGrid();
 }
 
-function renderCatTabs(){
-  if(!categories.length){ document.getElementById('catTabsWrap').innerHTML = ''; return; }
-  document.getElementById('catTabsWrap').innerHTML = `
-    <div class="cat-tabs">
-      <div class="cat-chip ${!currentCategory?'active':''}" onclick="selectCategory('')">全部分类</div>
-      ${categories.map(c => `<div class="cat-chip ${c===currentCategory?'active':''}" onclick="selectCategory('${escapeHtml(c).replace(/'/g,"\\'")}')">${escapeHtml(c)}</div>`).join('')}
-    </div>
+// ---- 分类筛选（底部弹层）----
+function openCatSheet(){
+  pendingCategory = currentCategory;
+  document.getElementById('catSheetBody').innerHTML = `
+    <div class="sheet-opt ${!pendingCategory?'active':''}" onclick="pickCatOpt('')">全部分类</div>
+    ${categories.map(c => `<div class="sheet-opt ${c===pendingCategory?'active':''}" onclick="pickCatOpt('${escapeHtml(c).replace(/'/g,"\\'")}')">${escapeHtml(c)}</div>`).join('')}
   `;
+  document.getElementById('catSheetMask').classList.add('show');
+  document.getElementById('catSheet').classList.add('show');
+}
+function pickCatOpt(c){
+  pendingCategory = c;
+  openCatSheet();
+}
+function closeCatSheet(){
+  document.getElementById('catSheetMask').classList.remove('show');
+  document.getElementById('catSheet').classList.remove('show');
+}
+function confirmCatSheet(){
+  currentCategory = pendingCategory;
+  document.getElementById('filterCat').classList.toggle('active', !!currentCategory);
+  document.getElementById('filterCat').querySelector('span').textContent = currentCategory || '分类';
+  closeCatSheet();
+  renderGrid();
 }
 
-function selectCategory(c){
-  currentCategory = c;
-  renderCatTabs();
+// ---- 搜索 ----
+function onSearchInput(){
+  searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+  renderGrid();
+}
+
+// ---- 排序（浏览量 / 新品）----
+function toggleSort(key){
+  if(sortKey === key){
+    sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+  }else{
+    sortKey = key;
+    sortDir = 'desc';
+  }
+  document.getElementById('filterViews').classList.toggle('active', sortKey==='views');
+  document.getElementById('filterNew').classList.toggle('active', sortKey==='new');
+  const av = document.getElementById('arrowViews').children;
+  const an = document.getElementById('arrowNew').children;
+  av[0].classList.remove('on'); av[1].classList.remove('on');
+  an[0].classList.remove('on'); an[1].classList.remove('on');
+  if(sortKey === 'views'){ (sortDir==='asc'?av[0]:av[1]).classList.add('on'); }
+  if(sortKey === 'new'){ (sortDir==='asc'?an[0]:an[1]).classList.add('on'); }
   renderGrid();
 }
 
 function renderGrid(){
   const grid = document.getElementById('grid');
   const empty = document.getElementById('emptyTip');
-  const list = allProducts.filter(p => (!currentSchool || p.school === currentSchool) && (!currentCategory || p.category === currentCategory));
+  let list = allProducts.filter(p =>
+    (!currentSchool || p.school === currentSchool) &&
+    (!currentCategory || p.category === currentCategory) &&
+    (!searchQuery || (p.name||'').toLowerCase().includes(searchQuery) || (p.school||'').toLowerCase().includes(searchQuery) || (p.category||'').toLowerCase().includes(searchQuery))
+  );
+  if(sortKey === 'views'){
+    list = list.slice().sort((a,b) => sortDir==='desc' ? (b.views||0)-(a.views||0) : (a.views||0)-(b.views||0));
+  }else if(sortKey === 'new'){
+    list = list.slice().sort((a,b) => sortDir==='desc' ? (b.createdAt||0)-(a.createdAt||0) : (a.createdAt||0)-(b.createdAt||0));
+  }
   if(!list.length){
     grid.innerHTML = '';
     empty.style.display = 'block';
-    empty.textContent = '这家店铺还没有上架商品';
+    empty.textContent = searchQuery ? '没有找到相关商品' : '这家店铺还没有上架商品';
     return;
   }
   empty.style.display = 'none';
   grid.innerHTML = list.map(p => `
-    <a class="card" href="/product.html?shop=${encodeURIComponent(shopId)}&id=${encodeURIComponent(p.id)}">
-      <div class="thumb" style="${p.images && p.images[0] ? `background-image:url('${p.images[0]}')` : ''}"></div>
+    <div class="card">
+      <a class="thumb-link" href="/product.html?shop=${encodeURIComponent(shopId)}&id=${encodeURIComponent(p.id)}">
+        ${p.category ? `<div class="badge">${escapeHtml(p.category)}</div>` : ''}
+        <div class="thumb" style="${p.images && p.images[0] ? `background-image:url('${p.images[0]}')` : ''}"></div>
+      </a>
       <div class="info">
-        <div class="name">${escapeHtml(p.name)}${p.category ? ` <span style="font-size:11px;color:var(--muted);font-weight:400;">· ${escapeHtml(p.category)}</span>` : ''}</div>
-        <div class="price">${p.price ? '¥' + escapeHtml(p.price) : '面议'}${p.shipping ? ' <span style="font-size:10.5px;color:#27415f;font-weight:600;">可邮寄</span>' : ''}</div>
+        <a class="thumb-link" href="/product.html?shop=${encodeURIComponent(shopId)}&id=${encodeURIComponent(p.id)}" style="color:inherit;text-decoration:none;">
+          <div class="name">${escapeHtml(p.name)}</div>
+        </a>
+        <div class="spec"><span class="dot"></span><span>学校：${escapeHtml(p.school||'通用')}</span></div>
+        <div class="spec"><span class="dot"></span><span>${p.shipping ? '可邮寄' : '到店自提'}</span></div>
+        <div class="price-row">
+          <span class="price">${p.price ? '¥' + escapeHtml(p.price) : '面议'}</span>
+          <span class="views">👁 ${p.views||0}</span>
+        </div>
       </div>
-    </a>
+      <div class="btn-row">
+        <a class="pill-btn pill-detail" href="/product.html?shop=${encodeURIComponent(shopId)}&id=${encodeURIComponent(p.id)}">详情</a>
+        <button class="pill-btn pill-share" onclick="shareProduct('${encodeURIComponent(p.id)}','${escapeHtml(p.name).replace(/'/g,"\\'")}')">分享</button>
+      </div>
+    </div>
   `).join('');
+}
+
+async function shareProduct(id, name){
+  const url = location.origin + '/product.html?shop=' + encodeURIComponent(shopId) + '&id=' + id;
+  const title = name + ' - ' + shopNameForShare;
+  const text = '我在"' + shopNameForShare + '"上架了' + name + '，点进来看看吧';
+  if(navigator.share){
+    try{ await navigator.share({ title, text, url }); return; }catch(e){ /* 用户取消或不支持，走下面复制兜底 */ }
+  }
+  try{
+    await navigator.clipboard.writeText(url);
+    showToast('商品链接已复制，发到微信群/朋友圈即可');
+  }catch(e){
+    showToast(url);
+  }
 }
 
 function copyText(t){
