@@ -104,6 +104,9 @@
   .plan-chip .p{font-size:15px;color:var(--price);font-weight:700;margin-top:2px;}
   .renewal-pending{background:#f3e3d6;color:var(--primary-dark);border-radius:8px;padding:10px 12px;font-size:12.5px;line-height:1.6;}
   .shot-upload-sm{width:100px;height:100px;border-radius:8px;border:1px dashed var(--border);background:#f1ece6 center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;cursor:pointer;margin-top:8px;}
+  .logo-upload-row{display:flex;align-items:center;gap:14px;margin-top:6px;}
+  .logo-upload{width:72px;height:72px;border-radius:50%;border:1px dashed var(--border);background:#f1ece6 center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;cursor:pointer;flex-shrink:0;text-align:center;line-height:1.3;}
+  .logo-upload-tip{font-size:12px;color:var(--muted);line-height:1.6;}
 </style>
 </head>
 <body>
@@ -118,6 +121,13 @@
 <div class="container">
   <div class="card">
     <h2>店铺信息</h2>
+
+    <label>店铺头像（展示在店铺页左上角的小圆形图标）</label>
+    <div class="logo-upload-row">
+      <div class="logo-upload" id="logoUpload" onclick="document.getElementById('logoFileInput').click()"><span id="logoHint">点击上传</span></div>
+      <div class="logo-upload-tip">不上传则默认显示店铺名称首字。建议方图，会自动裁成圆形。</div>
+    </div>
+    <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="uploadLogo(event)">
 
     <label>店招（店铺头图，建议宽图）</label>
     <div class="banner-upload" id="bannerUpload" onclick="document.getElementById('bannerFileInput').click()">
@@ -258,6 +268,7 @@ function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+let currentLogo = '';
 let currentBanner = '';
 let currentShopPhotos = [];
 let renewalInfo = null;
@@ -281,9 +292,11 @@ async function loadShop(){
   document.getElementById('address').value = d.address || '';
   document.getElementById('contactWechat').value = d.contactWechat || '';
   document.getElementById('contactPhone').value = d.contactPhone || '';
+  currentLogo = d.shopLogo || '';
   currentBanner = d.banner || '';
   currentShopPhotos = (d.shopPhotos || []).slice();
   renewalInfo = d.renewal || null;
+  renderLogo();
   renderBanner();
   renderShopPhotos();
   renderStatusBar(d.access);
@@ -438,6 +451,33 @@ async function closeAccount(){
   if(d.ok){ loadShop(); } else alert(d.msg || '操作失败');
 }
 
+function renderLogo(){
+  const el = document.getElementById('logoUpload');
+  if(currentLogo){
+    el.style.backgroundImage = `url('${currentLogo}')`;
+    document.getElementById('logoHint').textContent = '';
+  }else{
+    el.style.backgroundImage = '';
+    document.getElementById('logoHint').textContent = '点击上传';
+  }
+}
+
+async function uploadLogo(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  try{
+    const r = await apiFetch('/api/upload', {method:'POST', headers: authHeaders(), body: fd});
+    const d = await r.json();
+    if(d.ok){ currentLogo = d.url; renderLogo(); }
+    else alert(d.msg || '上传失败');
+  }catch(err){
+    alert('上传失败，请重试');
+  }
+  e.target.value = '';
+}
+
 function renderBanner(){
   const el = document.getElementById('bannerUpload');
   if(currentBanner){
@@ -472,6 +512,7 @@ async function saveShop(){
     address: document.getElementById('address').value.trim(),
     contactWechat: document.getElementById('contactWechat').value.trim(),
     contactPhone: document.getElementById('contactPhone').value.trim(),
+    shopLogo: currentLogo,
     banner: currentBanner,
     shopPhotos: currentShopPhotos
   };

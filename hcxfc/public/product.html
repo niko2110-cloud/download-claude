@@ -150,7 +150,7 @@ function render(p){
         ${p.shipping ? `<div class="ship-note">📦 支持邮寄${p.shippingNote ? '：' + escapeHtml(p.shippingNote) : ''}</div>` : ''}
       </div>
       <div class="shop-card">
-        <div class="avatar">${escapeHtml((p.shopName||'店').slice(0,1))}</div>
+        ${p.shopLogo ? `<img class="avatar" src="${p.shopLogo}" style="object-fit:cover;">` : `<div class="avatar">${escapeHtml((p.shopName||'店').slice(0,1))}</div>`}
         <div class="shopname">${escapeHtml(p.shopName)}</div>
         <a class="link" href="/shop.html?shop=${encodeURIComponent(p.shopId)}">查看店铺 ›</a>
       </div>

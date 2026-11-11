@@ -172,7 +172,7 @@ async function load(){
     document.getElementById('shopHead').innerHTML = `
       <div class="shop-head">
         <div class="row1">
-          <div class="avatar">${escapeHtml((d.shop.shopName||'店').slice(0,1))}</div>
+          ${d.shop.shopLogo ? `<img class="avatar" src="${d.shop.shopLogo}" style="object-fit:cover;">` : `<div class="avatar">${escapeHtml((d.shop.shopName||'店').slice(0,1))}</div>`}
           <div class="shopname">${escapeHtml(d.shop.shopName)}</div>
         </div>
         ${d.shop.intro ? `<div class="intro">${escapeHtml(d.shop.intro)}</div>` : ''}

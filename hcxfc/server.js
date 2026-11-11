@@ -166,6 +166,7 @@ function publicShopInfo(row) {
   return {
     shopId: row.shop_id,
     shopName: d.shopName || '未命名店铺',
+    shopLogo: d.shopLogo || '',
     banner: d.banner || '',
     intro: d.intro || '',
     address: d.address || '',
@@ -181,6 +182,7 @@ function publicProduct(row, p) {
     id: p.id,
     shopId: shop.shopId,
     shopName: shop.shopName,
+    shopLogo: shop.shopLogo,
     school: p.school || '',
     season: p.season || '',
     category: p.category || '',
@@ -280,6 +282,7 @@ app.get('/api/me', auth, (req, res) => {
     shopId: req.merchant.shop_id,
     role: req.merchant.role,
     shopName: d.shopName || '',
+    shopLogo: d.shopLogo || '',
     banner: d.banner || '',
     intro: d.intro || '',
     address: d.address || '',
@@ -305,8 +308,9 @@ app.post('/api/account/close', auth, (req, res) => {
 
 app.put('/api/shop', auth, (req, res) => {
   const d = parseShopData(req.merchant);
-  const { shopName, banner, intro, address, contactWechat, contactPhone, shopPhotos } = req.body || {};
+  const { shopName, shopLogo, banner, intro, address, contactWechat, contactPhone, shopPhotos } = req.body || {};
   if (shopName !== undefined) d.shopName = String(shopName).slice(0, 60);
+  if (shopLogo !== undefined) d.shopLogo = String(shopLogo).slice(0, 300);
   if (banner !== undefined) d.banner = banner;
   if (intro !== undefined) d.intro = String(intro).slice(0, 300);
   if (address !== undefined) d.address = String(address).slice(0, 120);
