@@ -242,6 +242,20 @@
   </div>
 </div>
 
+<div class="modal-bg" id="closeAccountModalBg">
+  <div class="modal" style="max-width:360px;">
+    <h3>确认注销店铺</h3>
+    <p style="font-size:13px;color:var(--muted);line-height:1.6;margin:10px 0 0;">注销后店铺立即下线，数据会保留1个月，期间可联系平台恢复；超过1个月后数据可能被清理。请输入登录密码确认。</p>
+    <label>登录密码</label>
+    <input id="closeAccountPwd" type="password" placeholder="请输入当前登录密码" maxlength="30">
+    <div class="msg" id="closeAccountMsg" style="font-size:12.5px;color:#d92b2b;min-height:16px;margin-top:6px;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeCloseAccountModal()">取消</button>
+      <button class="btn btn-danger" onclick="confirmCloseAccount()">确认注销</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const token = localStorage.getItem('hcxfc_token');
 if(!token){ location.href = '/merchant_login.html'; }
@@ -444,11 +458,28 @@ async function submitRenewal(){
   }
 }
 
-async function closeAccount(){
-  if(!confirm('确定要注销店铺吗？注销后店铺立即下线，数据会保留1个月，期间可联系平台恢复；超过1个月后数据可能被清理。')) return;
-  const r = await apiFetch('/api/account/close', {method:'POST', headers: authHeaders()});
+function closeAccount(){
+  document.getElementById('closeAccountPwd').value = '';
+  document.getElementById('closeAccountMsg').textContent = '';
+  document.getElementById('closeAccountModalBg').classList.add('show');
+}
+
+function closeCloseAccountModal(){
+  document.getElementById('closeAccountModalBg').classList.remove('show');
+}
+
+async function confirmCloseAccount(){
+  const password = document.getElementById('closeAccountPwd').value;
+  const msg = document.getElementById('closeAccountMsg');
+  if(!password){ msg.textContent = '请输入登录密码'; return; }
+  const r = await apiFetch('/api/account/close', {method:'POST', headers: authHeaders(true), body: JSON.stringify({password})});
   const d = await r.json();
-  if(d.ok){ loadShop(); } else alert(d.msg || '操作失败');
+  if(d.ok){
+    closeCloseAccountModal();
+    loadShop();
+  }else{
+    msg.textContent = d.msg || '操作失败';
+  }
 }
 
 function renderLogo(){

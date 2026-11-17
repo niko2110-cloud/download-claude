@@ -22,6 +22,16 @@
   .btn{width:100%;padding:13px 0;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;margin-top:20px;cursor:pointer;}
   .msg{font-size:13px;color:#e4572e;margin-top:10px;min-height:18px;}
   .back-home{display:block;text-align:center;margin-top:16px;font-size:13px;color:var(--muted);text-decoration:none;}
+  .agree-row{display:flex;align-items:flex-start;gap:7px;margin-top:16px;}
+  .agree-row input[type=checkbox]{width:auto;margin-top:2px;flex-shrink:0;}
+  .agree-row label{margin:0;font-size:12px;color:var(--muted);line-height:1.6;}
+  .agree-row a{color:var(--primary);text-decoration:none;}
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:30;align-items:center;justify-content:center;padding:16px;}
+  .modal-bg.show{display:flex;}
+  .modal{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:420px;max-height:80vh;overflow-y:auto;}
+  .modal h3{margin:0 0 10px;font-size:16px;}
+  .modal p{font-size:13.5px;line-height:1.8;color:var(--text);margin:0 0 10px;}
+  .modal .btn{margin-top:14px;}
 </style>
 </head>
 <body>
@@ -48,11 +58,27 @@
       <label>密码</label>
       <input id="password" type="password" placeholder="至少6位" maxlength="30">
 
+      <div class="agree-row">
+        <input type="checkbox" id="agreeCheck">
+        <label for="agreeCheck">我已阅读并同意<a href="javascript:void(0)" onclick="showAgreement()">《商家入驻协议》</a>：平台仅提供展示工具，不参与店铺经营，相关权益及最终解释权归平台所有；商家须对所售商品的真实性、合法性负责，<b>严禁销售假冒伪劣商品</b>，违者自行承担全部法律责任并立即清退店铺。</label>
+      </div>
+
       <button class="btn" id="submitBtn" onclick="doLogin()">登录</button>
       <div class="msg" id="msg"></div>
     </div>
   </div>
   <a class="back-home" href="/">← 返回首页</a>
+</div>
+
+<div class="modal-bg" id="agreementModalBg">
+  <div class="modal">
+    <h3>商家入驻协议</h3>
+    <p>1. 本平台（校服之家）仅为商家提供展示店铺、商品信息的工具，不参与商家与家长之间的交易，不承担交易担保责任。</p>
+    <p>2. 平台对页面模板、功能及相关权益保留最终解释权和所有权，商家不得将平台功能用于本协议约定以外的用途。</p>
+    <p>3. 商家须保证所售商品来源合法、信息真实，<b>严禁销售假冒伪劣、侵权或违禁商品</b>。如因商家经营内容引发纠纷或法律责任，均由商家自行承担，平台有权在不另行通知的情况下下线或清退相关店铺。</p>
+    <p>4. 勾选即视为已阅读并接受本协议全部内容。</p>
+    <button class="btn" onclick="document.getElementById('agreementModalBg').classList.remove('show')">我知道了</button>
+  </div>
 </div>
 
 <script>
@@ -71,11 +97,16 @@ function switchMode(m){
   document.getElementById('msg').textContent = '';
 }
 
+function showAgreement(){
+  document.getElementById('agreementModalBg').classList.add('show');
+}
+
 async function doLogin(){
   const phone = document.getElementById('phone').value.trim();
   const password = document.getElementById('password').value;
   const msg = document.getElementById('msg');
   msg.textContent = '';
+  if(!document.getElementById('agreeCheck').checked){ msg.textContent = '请先阅读并勾选《商家入驻协议》'; return; }
   if(!phone || !password){ msg.textContent = '请输入手机号和密码'; return; }
   try{
     const r = await fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({phone, password})});
@@ -95,6 +126,7 @@ async function doRegister(){
   const shopName = document.getElementById('shopName').value.trim();
   const msg = document.getElementById('msg');
   msg.textContent = '';
+  if(!document.getElementById('agreeCheck').checked){ msg.textContent = '请先阅读并勾选《商家入驻协议》'; return; }
   if(!/^1[3-9]\d{9}$/.test(phone)){ msg.textContent = '手机号格式不对'; return; }
   if(password.length < 6){ msg.textContent = '密码至少6位'; return; }
   try{

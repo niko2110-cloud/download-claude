@@ -300,8 +300,13 @@ app.get('/api/me', auth, (req, res) => {
 });
 
 // 商家自助注销（数据保留30天宽限期，期满后由管理员清理）
+// 需要再次输入密码确认，避免误触
 app.post('/api/account/close', auth, (req, res) => {
   if (req.merchant.role !== 'merchant') return res.status(400).json({ ok: false, msg: '仅商家账号可注销' });
+  const { password } = req.body || {};
+  if (!password || !bcrypt.compareSync(password, req.merchant.password)) {
+    return res.status(400).json({ ok: false, msg: '密码不正确，请重新输入' });
+  }
   db.prepare('UPDATE merchants SET closed_at = ? WHERE id = ?').run(Date.now(), req.merchant.id);
   res.json({ ok: true });
 });
