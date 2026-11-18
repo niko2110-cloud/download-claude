@@ -90,7 +90,7 @@
 <div class="search-bar">
   <div class="search-box">
     <span class="icon">🔍</span>
-    <input id="searchInput" type="text" placeholder="搜索商品名称/学校/分类" oninput="onSearchInput()">
+    <input id="searchInput" type="text" placeholder="搜索商品名称/分类" oninput="onSearchInput()">
   </div>
 </div>
 <div class="filter-bar">
@@ -296,7 +296,7 @@ function renderGrid(){
         <a class="thumb-link" href="/product.html?shop=${encodeURIComponent(shopId)}&id=${encodeURIComponent(p.id)}" style="color:inherit;text-decoration:none;">
           <div class="name">${escapeHtml(p.name)}</div>
         </a>
-        <div class="spec"><span class="dot"></span><span>学校：${escapeHtml(p.school||'通用')}</span></div>
+        <div class="spec"><span class="dot"></span><span>分类：${escapeHtml(p.school||'通用')}</span></div>
         <div class="spec"><span class="dot"></span><span>${p.shipping ? '可邮寄' : '到店自提'}</span></div>
         <div class="price-row">
           <span class="price">${p.price ? '¥' + escapeHtml(p.price) : '面议'}</span>

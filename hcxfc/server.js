@@ -335,7 +335,7 @@ app.get('/api/my/products', auth, (req, res) => {
 app.post('/api/my/products', auth, (req, res) => {
   const d = parseShopData(req.merchant);
   const { school, season, category, name, price, sizes, images, desc, shipping, shippingNote } = req.body || {};
-  if (!school || !name) return res.status(400).json({ ok: false, msg: '学校和商品名必填' });
+  if (!school || !name) return res.status(400).json({ ok: false, msg: '分类和商品名必填' });
   const p = {
     id: genProductId(),
     school: String(school).slice(0, 40),

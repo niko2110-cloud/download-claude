@@ -189,8 +189,10 @@
     <h3 id="modalTitle">添加商品</h3>
     <input type="hidden" id="editingId">
 
-    <label>所属学校（作为店内分类，比如"衡水中学"）</label>
-    <input id="pSchool" type="text" placeholder="例如：衡水中学" maxlength="40">
+    <label>分类（店铺顶部的分类标签，比如"衡水中学"，也可以是"床上用品""洗漱用品"等非校服分类）</label>
+    <select id="pSchoolSelect" onchange="onSchoolSelectChange()"></select>
+    <input id="pSchoolNew" type="text" placeholder="输入新分类名称，例如：床上用品" maxlength="40" style="display:none;margin-top:8px;">
+    <input type="hidden" id="pSchool">
 
     <label>季节</label>
     <div class="season-switch">
@@ -199,7 +201,7 @@
     </div>
     <input type="hidden" id="pSeason" value="冬季款">
 
-    <label>商品分类（上衣/裤子/裙子/外套/运动服等，方便家长筛选）</label>
+    <label>商品类型（上衣/裤子/裙子/外套/运动服等，方便家长筛选）</label>
     <input id="pCategory" type="text" list="categoryOptions" placeholder="例如：外套" maxlength="20">
     <datalist id="categoryOptions">
       <option value="上衣"><option value="裤子"><option value="裙子">
@@ -616,6 +618,36 @@ let currentSizes = [];
 let currentImages = [];
 const MAX_IMAGES = 4;
 
+function renderSchoolOptions(selected){
+  const cats = Array.from(new Set(products.map(p => p.school).filter(Boolean))).sort((a,b) => a.localeCompare('zh'));
+  const sel = document.getElementById('pSchoolSelect');
+  let opts = '<option value="">请选择分类</option>';
+  opts += cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  if(selected && !cats.includes(selected)){
+    opts += `<option value="${escapeHtml(selected)}">${escapeHtml(selected)}</option>`;
+  }
+  opts += '<option value="__new__">+ 新建分类...</option>';
+  sel.innerHTML = opts;
+  sel.value = selected || '';
+  document.getElementById('pSchool').value = selected || '';
+  document.getElementById('pSchoolNew').style.display = 'none';
+  document.getElementById('pSchoolNew').value = '';
+}
+
+function onSchoolSelectChange(){
+  const sel = document.getElementById('pSchoolSelect');
+  const newInput = document.getElementById('pSchoolNew');
+  if(sel.value === '__new__'){
+    newInput.style.display = 'block';
+    newInput.value = '';
+    document.getElementById('pSchool').value = '';
+    newInput.focus();
+  }else{
+    newInput.style.display = 'none';
+    document.getElementById('pSchool').value = sel.value;
+  }
+}
+
 function setSeason(s){
   document.getElementById('pSeason').value = s;
   document.getElementById('seasonWinter').classList.toggle('active', s==='冬季款');
@@ -629,7 +661,7 @@ function toggleShippingNote(){
 function openProductModal(){
   document.getElementById('modalTitle').textContent = '添加商品';
   document.getElementById('editingId').value = '';
-  document.getElementById('pSchool').value = '';
+  renderSchoolOptions('');
   setSeason('冬季款');
   document.getElementById('pCategory').value = '';
   document.getElementById('pName').value = '';
@@ -650,7 +682,7 @@ function editProduct(id){
   if(!p) return;
   document.getElementById('modalTitle').textContent = '编辑商品';
   document.getElementById('editingId').value = id;
-  document.getElementById('pSchool').value = p.school;
+  renderSchoolOptions(p.school);
   setSeason(p.season);
   document.getElementById('pCategory').value = p.category || '';
   document.getElementById('pName').value = p.name;
@@ -669,6 +701,10 @@ function editProduct(id){
 function closeProductModal(){
   document.getElementById('productModalBg').classList.remove('show');
 }
+
+document.getElementById('pSchoolNew').addEventListener('input', e => {
+  document.getElementById('pSchool').value = e.target.value.trim();
+});
 
 document.getElementById('pSizeInput').addEventListener('keydown', e => {
   if(e.key === 'Enter'){
@@ -726,7 +762,7 @@ async function saveProduct(){
     shipping: document.getElementById('pShipping').checked,
     shippingNote: document.getElementById('pShippingNote').value.trim()
   };
-  if(!body.school || !body.name){ alert('学校和商品名称必填'); return; }
+  if(!body.school || !body.name){ alert('分类和商品名称必填'); return; }
 
   const url = id ? ('/api/my/products/' + id) : '/api/my/products';
   const method = id ? 'PUT' : 'POST';
