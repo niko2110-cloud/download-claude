@@ -352,7 +352,11 @@ function renderShopPhotos(){
   }
   list.innerHTML = html;
 }
-function removeShopPhoto(i){ currentShopPhotos.splice(i,1); renderShopPhotos(); }
+async function removeShopPhoto(i){
+  currentShopPhotos.splice(i,1);
+  renderShopPhotos();
+  await saveShopField({shopPhotos: currentShopPhotos});
+}
 
 async function uploadShopPhoto(e){
   const file = e.target.files[0];
@@ -363,7 +367,7 @@ async function uploadShopPhoto(e){
   try{
     const r = await apiFetch('/api/upload', {method:'POST', headers: authHeaders(), body: fd});
     const d = await r.json();
-    if(d.ok){ currentShopPhotos.push(d.url); renderShopPhotos(); }
+    if(d.ok){ currentShopPhotos.push(d.url); renderShopPhotos(); await saveShopField({shopPhotos: currentShopPhotos}); }
     else alert(d.msg || '上传失败');
   }catch(err){
     alert('上传失败，请重试');
@@ -484,6 +488,21 @@ async function confirmCloseAccount(){
   }
 }
 
+// 图片类字段（头像/店招/店内照片）一上传或一删除就立刻单独保存到服务器，
+// 不等"保存"按钮，也不跟表单里其它字段一起提交——避免多开窗口时，
+// 旧窗口里过期的字段把刚上传的新内容覆盖掉。
+async function saveShopField(fields){
+  try{
+    const r = await apiFetch('/api/shop', {method:'PUT', headers: authHeaders(true), body: JSON.stringify(fields)});
+    const d = await r.json();
+    if(!d.ok){ alert('保存失败：' + (d.msg || '请重试')); return false; }
+    return true;
+  }catch(err){
+    alert('网络错误，保存失败，请重试');
+    return false;
+  }
+}
+
 function renderLogo(){
   const el = document.getElementById('logoUpload');
   if(currentLogo){
@@ -503,7 +522,7 @@ async function uploadLogo(e){
   try{
     const r = await apiFetch('/api/upload', {method:'POST', headers: authHeaders(), body: fd});
     const d = await r.json();
-    if(d.ok){ currentLogo = d.url; renderLogo(); }
+    if(d.ok){ currentLogo = d.url; renderLogo(); await saveShopField({shopLogo: currentLogo}); }
     else alert(d.msg || '上传失败');
   }catch(err){
     alert('上传失败，请重试');
@@ -530,7 +549,7 @@ async function uploadBanner(e){
   try{
     const r = await apiFetch('/api/upload', {method:'POST', headers: authHeaders(), body: fd});
     const d = await r.json();
-    if(d.ok){ currentBanner = d.url; renderBanner(); }
+    if(d.ok){ currentBanner = d.url; renderBanner(); await saveShopField({banner: currentBanner}); }
     else alert(d.msg || '上传失败');
   }catch(err){
     alert('上传失败，请重试');
@@ -544,10 +563,9 @@ async function saveShop(){
     intro: document.getElementById('intro').value.trim(),
     address: document.getElementById('address').value.trim(),
     contactWechat: document.getElementById('contactWechat').value.trim(),
-    contactPhone: document.getElementById('contactPhone').value.trim(),
-    shopLogo: currentLogo,
-    banner: currentBanner,
-    shopPhotos: currentShopPhotos
+    contactPhone: document.getElementById('contactPhone').value.trim()
+    // 注意：店铺头像/店招/店内照片在各自上传或删除时已单独即时保存，
+    // 这里不再重复提交，避免用旧页面里过期的值把最新上传的图片覆盖掉。
   };
   const r = await apiFetch('/api/shop', {method:'PUT', headers: authHeaders(true), body: JSON.stringify(body)});
   const d = await r.json();
